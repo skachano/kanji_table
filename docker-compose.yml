@@ -1,0 +1,37 @@
+services:
+  # Development service with hot module reloading
+  dev:
+    build:
+      context: .
+      target: dev
+    container_name: kanji-table-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+    command: npm run dev
+
+  # Production service serving optimized build with Nginx
+  prod:
+    build:
+      context: .
+      target: prod
+    container_name: kanji-table-prod
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  # Data builder service (Python pipeline for updating dataset)
+  data:
+    image: python:3.12-slim
+    container_name: kanji-table-data
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python3 scripts/build_dataset.py
+    profiles:
+      - tools

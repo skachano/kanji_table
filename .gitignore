@@ -1,6 +1,9 @@
 # Raw downloaded datasets (can be refetched via scripts/download_sources.py)
 data/raw/
 
+# Local node runtime
+.node/
+
 # Node / dependencies
 node_modules/
 dist/

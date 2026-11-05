@@ -1,0 +1,9 @@
+data/raw/
+node_modules/
+dist/
+.git/
+.cache/
+.node/
+__pycache__/
+*.py[cod]
+.DS_Store

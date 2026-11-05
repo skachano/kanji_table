@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gojuon-a: oklch(0.68 0.18 25);
+  --gojuon-ka: oklch(0.72 0.17 55);
+  --gojuon-sa: oklch(0.78 0.17 90);
+  --gojuon-ta: oklch(0.75 0.17 130);
+  --gojuon-na: oklch(0.72 0.16 160);
+  --gojuon-ha: oklch(0.70 0.15 195);
+  --gojuon-ma: oklch(0.68 0.16 235);
+  --gojuon-ya: oklch(0.65 0.18 275);
+  --gojuon-ra: oklch(0.66 0.20 315);
+  --gojuon-wa: oklch(0.70 0.19 350);
+}
+
+/* Custom scrollbars for the 2D table */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
