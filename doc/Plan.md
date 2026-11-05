@@ -33,6 +33,16 @@ The **Kanji 2D Structural Table** is an interactive web application that arrange
 - **State Management:** Zustand or React Context + URL query sync (for shareable filter/selection states).
 - **Styling:** Tailwind CSS + CSS Custom Properties (`--hue-a`, `--hue-ka`, etc.) for accessible light/dark mode and gojūon color theming.
 
+### 2.3 Containerization & Deployment (Docker)
+- **Multi-Stage `Dockerfile`:**
+  1. **Stage 1 (`data-builder` — `python:3.12-slim`):** Runs `scripts/download_sources.py` and `scripts/build_dataset.py` to generate `src/data/kanji_matrix.json` reproducibly inside an isolated container.
+  2. **Stage 2 (`frontend-builder` — `node:22-alpine`):** Installs frontend dependencies, copies the generated `kanji_matrix.json` from Stage 1, and builds the static production bundle (`npm run build` -> `dist/`).
+  3. **Stage 3 (`runtime` — `nginx:alpine`):** Serves the compiled static assets from `dist/` with gzip/brotli compression and SPA caching headers on port `80` (`8080` unprivileged).
+- **`docker-compose.yml`:**
+  - `dev` service: Runs the Vite dev server with hot-module reloading (`HMR`) and bind-mounted `src/` and `data/` volumes (`http://localhost:5173`).
+  - `data` profile/service: One-off container command (`docker compose run --rm data`) to re-download sources or rebuild `kanji_matrix.json` after editing `data/overrides.json`.
+  - `prod` service: Builds and serves the production Nginx image locally (`http://localhost:8080`).
+
 ---
 
 ## 3. Data Modeling & Decomposition Algorithm
@@ -130,11 +140,12 @@ Clicking any kanji card opens an inspection drawer containing:
    - Support manual overrides in `data/overrides.yaml`.
 4. Output `src/data/kanji_matrix.json` and validate coverage statistics (e.g., % of Jōyō kanji placed into multi-kanji columns).
 
-### Milestone 2: Core 2D Table UI & Gojūon Color System
+### Milestone 2: Core 2D Table UI, Gojūon Color System & Docker Setup
 1. Scaffold Vite + React + TypeScript + Tailwind CSS project.
-2. Define the 10-hue OKLCH color palette for Gojūon rows (`あ` through `わ`) with light/dark mode support and color-legend bar.
-3. Build the virtualized 2D table component (`KanjiMatrix`) with sticky radical row headers, sticky component column headers, and pinned `Row 0 (∅)`.
-4. Implement the `KanjiCard` component with On'yomi label, Gojūon hue, and dual-placement indicator badges.
+2. Add `Dockerfile` (multi-stage: Python data pipeline + Node build + Nginx runtime), `.dockerignore`, and `docker-compose.yml` for containerized development and deployment.
+3. Define the 10-hue OKLCH color palette for Gojūon rows (`あ` through `わ`) with light/dark mode support and color-legend bar.
+4. Build the virtualized 2D table component (`KanjiMatrix`) with sticky radical row headers, sticky component column headers, and pinned `Row 0 (∅)`.
+5. Implement the `KanjiCard` component with On'yomi label, Gojūon hue, and dual-placement indicator badges.
 
 ### Milestone 3: Filtering, Sorting & Cross-Navigation
 1. Implement column/row sorting (by density/count, stroke count, Gojūon reading, Kangxi order).
@@ -160,7 +171,8 @@ kanji_table/
 │   └── Plan.md                  # This development plan
 ├── data/
 │   ├── raw/                     # Downloaded KanjiVG, KANJIDIC2, IDS files (gitignored)
-│   └── overrides.yaml           # Curated decomposition & primary On'yomi overrides
+│   ├── overrides.json           # Curated decomposition & primary On'yomi overrides
+│   └── overrides.yaml           # YAML reference for overrides
 ├── scripts/
 │   ├── download_sources.py      # Fetches KanjiVG, KANJIDIC2, IDS data
 │   └── build_dataset.py         # Builds static JSON matrix & decomposition graph
@@ -181,5 +193,8 @@ kanji_table/
 │   │   └── gojuonColors.ts      # Kana-to-Gojūon row mapper and OKLCH palette
 │   ├── App.tsx
 │   └── main.tsx
+├── Dockerfile                   # Multi-stage build (Python data -> Node Vite build -> Nginx)
+├── docker-compose.yml           # Dev server, data pipeline runner, and prod preview
+├── .dockerignore
 └── package.json
 ```

@@ -1,0 +1,160 @@
+# data/overrides.yaml
+# Human-curated overrides for the Kanji 2D Structural Matrix.
+# Allows fine-tuning structural splits, column aliases, row radical labels, and primary On'yomi.
+
+# 1. Kanji Decomposition Overrides
+# Format:
+#   <kanji>:
+#     position: left | right | top | bottom | nyo | tare | kamae | none
+#     radical: <radical character or null>
+#     base: <base component character>
+#     notes: optional explanation
+kanji:
+  土:
+    position: none
+    radical: null
+    base: 土
+    notes: Canonical Kangxi radical 32 (standalone base)
+  士:
+    position: none
+    radical: null
+    base: 士
+    notes: Canonical Kangxi radical 33 (standalone base)
+  万:
+    position: none
+    radical: null
+    base: 万
+    notes: Standalone base
+  与:
+    position: none
+    radical: null
+    base: 与
+    notes: Standalone base
+  世:
+    position: none
+    radical: null
+    base: 世
+    notes: Standalone base
+  久:
+    position: none
+    radical: null
+    base: 久
+    notes: Standalone base
+  八:
+    position: none
+    radical: null
+    base: 八
+    notes: Standalone base radical
+  非:
+    position: none
+    radical: null
+    base: 非
+    notes: Standalone base radical
+  示:
+    position: none
+    radical: null
+    base: 示
+    notes: Standalone base radical
+  欠:
+    position: none
+    radical: null
+    base: 欠
+    notes: Standalone base radical
+  豆:
+    position: none
+    radical: null
+    base: 豆
+    notes: Standalone base radical
+  谷:
+    position: none
+    radical: null
+    base: 谷
+    notes: Standalone base radical
+  甲:
+    position: none
+    radical: null
+    base: 甲
+    notes: Standalone base
+  申:
+    position: none
+    radical: null
+    base: 申
+    notes: Standalone base
+  弔:
+    position: left
+    radical: 弓
+    base: 丨
+  引:
+    position: left
+    radical: 弓
+    base: 丨
+  合:
+    position: bottom
+    radical: 口
+    base: 亼
+  命:
+    position: bottom
+    radical: 卩
+    base: 侖
+  侯:
+    position: left
+    radical: 亻
+    base: 矢
+  候:
+    position: left
+    radical: 亻
+    base: 矦
+  師:
+    position: right
+    radical: 巾
+    base: 𠂤
+  帥:
+    position: right
+    radical: 巾
+    base: 𠂤
+  連:
+    position: nyo
+    radical: 辶
+    base: 車
+    notes: Decomposes into 車, also acts as column for 蓮
+  蓮:
+    position: top
+    radical: 艹
+    base: 連
+    notes: Jinmeiyo kanji with 連 as base
+
+# 2. Component / Column Aliases
+# Normalizes uncommon variant forms to common standard components where helpful
+column_aliases:
+  𠆢: 人
+  ⺮: 竹
+  ⻗: 雨
+  ⺼: 月
+  ⻌: 辶
+  辶: 辶
+
+# 3. Primary On'yomi Overrides (kana)
+# If KANJIDIC's first reading is not the most common colloquial / textbook reading
+primary_onyomi:
+  仏: ぶつ
+  画: が
+  外: がい
+  内: ない
+  自: じ
+  白: はく
+  金: きん
+  銀: ぎん
+  女: じょ
+  男: だん
+  大: だい
+  小: しょう
+  中: ちゅう
+  生: せい
+  行: こう
+  見: けん
+  言: げん
+  分: ぶん
+  食: しょく
+  読: どく
+  聞: ぶん
+  書: しょ
