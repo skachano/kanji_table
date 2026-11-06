@@ -1,7 +1,19 @@
 import React from 'react';
-import { FilterState, GojuonRowId, GojuonRowInfo } from '../types/kanji';
+import { FilterState, GojuonRowId, GojuonRowInfo, PositionType } from '../types/kanji';
 import { GOJUON_THEMES } from '../utils/gojuonColors';
-import { Search, X, Sparkles } from 'lucide-react';
+import { Search, X, Sparkles, LayoutGrid } from 'lucide-react';
+
+export const RADICAL_POSITIONS: { id: PositionType | 'all'; label: string; desc: string }[] = [
+  { id: 'all', label: 'すべて', desc: '全配置' },
+  { id: 'left', label: '偏 (へん)', desc: '左側' },
+  { id: 'right', label: '旁 (つくり)', desc: '右側' },
+  { id: 'top', label: '冠 (かんむり)', desc: '上部' },
+  { id: 'bottom', label: '脚 (あし)', desc: '下部' },
+  { id: 'nyo', label: '繞 (にょう)', desc: '左下' },
+  { id: 'tare', label: '垂 (たれ)', desc: '左上' },
+  { id: 'kamae', label: '構 (かまえ)', desc: '囲み' },
+  { id: 'none', label: '基本形 (∅)', desc: '追加部首なし' },
+];
 
 interface FilterToolbarProps {
   filter: FilterState;
@@ -101,6 +113,24 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             <option value="N1">JLPT N1 (上級)</option>
           </select>
 
+          {/* Position (偏・旁・冠・脚 etc.) Filter dropdown */}
+          <select
+            value={filter.positionFilter}
+            onChange={(e) =>
+              onFilterChange((prev) => ({
+                ...prev,
+                positionFilter: e.target.value as FilterState['positionFilter'],
+              }))
+            }
+            className="px-2.5 py-1.5 text-xs font-medium bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {RADICAL_POSITIONS.map((pos) => (
+              <option key={pos.id} value={pos.id}>
+                部首配置: {pos.label}
+              </option>
+            ))}
+          </select>
+
           {/* Min kanji per column selector */}
           <div className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs">
             <span className="text-slate-500 dark:text-slate-400 font-medium">列密度:</span>
@@ -134,6 +164,54 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             />
             <span>空行を隠す</span>
           </label>
+        </div>
+      </div>
+
+      {/* Middle row: Radical Position (偏・旁・冠・脚 etc.) Pill Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+        <div className="flex items-center space-x-2">
+          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 shrink-0">
+            <LayoutGrid className="w-3.5 h-3.5 text-indigo-500" />
+            部首配置 (行):
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {RADICAL_POSITIONS.map((pos) => {
+              const isSelected = filter.positionFilter === pos.id;
+              return (
+                <button
+                  key={pos.id}
+                  type="button"
+                  onClick={() =>
+                    onFilterChange((prev) => ({
+                      ...prev,
+                      positionFilter: prev.positionFilter === pos.id && pos.id !== 'all' ? 'all' : pos.id,
+                    }))
+                  }
+                  className={`
+                    px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all border
+                    ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-2xs ring-2 ring-indigo-400/40'
+                        : 'bg-slate-50 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }
+                  `}
+                  title={`${pos.label} (${pos.desc})`}
+                >
+                  {pos.label}
+                </button>
+              );
+            })}
+
+            {filter.positionFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => onFilterChange((prev) => ({ ...prev, positionFilter: 'all' }))}
+                className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300"
+              >
+                解除
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

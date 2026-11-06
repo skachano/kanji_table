@@ -288,6 +288,27 @@ def get_node_text(g):
         return '⺍冖'
     return text
 
+VALID_POSITIONS = {'none', 'left', 'right', 'top', 'bottom', 'nyo', 'tare', 'kamae'}
+
+def sanitize_pos(pos, default='left'):
+    if not pos:
+        return default
+    if pos in VALID_POSITIONS:
+        return pos
+    if pos.startswith('tare'):
+        return 'tare'
+    if pos.startswith('nyo'):
+        return 'nyo'
+    if pos.startswith('kamae'):
+        return 'kamae'
+    if pos.startswith(('⿵', '⿴', '凵', '冂')):
+        return 'kamae'
+    if pos.startswith(('⿸', '广', '尸')):
+        return 'tare'
+    if pos.startswith(('⿺', '辶')):
+        return 'nyo'
+    return default
+
 def decompose_kanjivg(char, k_elem):
     if char in STANDALONE_RADICALS:
         return 'none', '∅', char
@@ -313,8 +334,7 @@ def decompose_kanjivg(char, k_elem):
                 inside = inside.replace('衣', '')
                 return 'kamae', '衣', inside
             pos = p1.get(f'{KVG}position')
-            if pos:
-                return pos, elem, inside
+            return sanitize_pos(pos, 'kamae'), elem, inside
 
     if len(children) == 2:
         c1, c2 = children[0], children[1]
@@ -337,12 +357,20 @@ def decompose_kanjivg(char, k_elem):
         
         # If c2 is explicitly marked as radical and c1 is not (Pattern B)
         if is_rad2 and not is_rad1:
-            p = pos2 or ('bottom' if t2 in KNOWN_BOTTOM else 'right')
+            if pos2 in ('tarec', 'nyoc', 'kamaec'):
+                if t2 in KNOWN_BOTTOM:
+                    p = 'bottom'
+                elif pos1 in ('tare', 'nyo', 'kamae'):
+                    return sanitize_pos(pos1), t1, t2
+                else:
+                    p = 'bottom'
+            else:
+                p = sanitize_pos(pos2, 'bottom' if t2 in KNOWN_BOTTOM else 'right')
             return p, t2, t1
             
         # If c1 is explicitly marked as radical and c2 is not
         if is_rad1 and not is_rad2:
-            p = pos1 or ('top' if pos2 == 'bottom' else 'left')
+            p = sanitize_pos(pos1, 'top' if pos2 == 'bottom' else 'left')
             return p, t1, t2
             
         # If neither or both: check positions and known radicals
@@ -357,7 +385,7 @@ def decompose_kanjivg(char, k_elem):
         if pos2 == 'right' and t2 in KNOWN_RIGHT:
             return 'right', t2, t1
         if pos1 in ('tare', 'nyo', 'kamae'):
-            return pos1, t1, t2
+            return sanitize_pos(pos1), t1, t2
 
     return None
 

@@ -60,6 +60,17 @@ export const App: React.FC = () => {
     setFocusedColId(null);
   }, []);
 
+  // Update filter with auto-clear of row focus if position filter changes
+  const handleFilterChange = useCallback((updater: (prev: FilterState) => FilterState) => {
+    setFilter((prev) => {
+      const next = updater(prev);
+      if (next.positionFilter !== prev.positionFilter) {
+        setFocusedRowId(null);
+      }
+      return next;
+    });
+  }, []);
+
   // Filter matching cells and compute active columns/rows
   const { filteredCells, activeColumns, activeRows, matchingKanjiCount } = useMemo(() => {
     const q = filter.searchQuery.trim().toLowerCase();
@@ -86,7 +97,15 @@ export const App: React.FC = () => {
         continue;
       }
 
-      // 4. Search query
+      // 4. Radical Position filter (偏, 旁, 冠, 脚, 繞, 垂, 構, 基本形)
+      if (filter.positionFilter !== 'all') {
+        const cellPos = cell.row_id.split(':')[0];
+        if (cellPos !== filter.positionFilter) {
+          continue;
+        }
+      }
+
+      // 5. Search query
       if (q) {
         const matchesKanji = cell.kanji.includes(q);
         const matchesOn = cell.all_onyomi.some((on) => on.toLowerCase().includes(q));
@@ -124,8 +143,17 @@ export const App: React.FC = () => {
 
     // Filter rows
     let visibleRows = matrixData.rows.filter((row) => {
-      // Row 0 (none:∅) is kept if any column has a base component and not filtering by a focused row
-      if (row.position === 'none' && !focusedRowId) return true;
+      // Position filter (偏, 旁, 冠, 脚, 繞, 垂, 構, 基本形)
+      if (filter.positionFilter !== 'all' && row.position !== filter.positionFilter) {
+        return false;
+      }
+      // Row 0 (none:∅) is kept if positionFilter is 'all' or 'none', and not filtering by a focused row
+      if (row.position === 'none' && !focusedRowId) {
+        if (filter.positionFilter !== 'all' && filter.positionFilter !== 'none') {
+          return false;
+        }
+        return true;
+      }
       if (filter.hideEmptyRows && !rowsWithKanji.has(row.id)) return false;
       return true;
     });
@@ -259,7 +287,7 @@ export const App: React.FC = () => {
       {/* Filter and Legend Toolbar */}
       <FilterToolbar
         filter={filter}
-        onFilterChange={setFilter}
+        onFilterChange={handleFilterChange}
         gojuonRows={matrixData.gojuon_rows}
         totalKanjiCount={matrixData.metadata.total_kanji}
         filteredKanjiCount={matchingKanjiCount}
