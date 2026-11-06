@@ -443,61 +443,123 @@ export const App: React.FC = () => {
             </button>
           </div>
 
-          {/* Counterpart Links (e.g. counterpart rows for column 口, or counterpart column and sibling rows for row 口偏) */}
-          {(counterparts.columns.length > 0 || counterparts.rows.length > 0) && (
+          {/* Counterpart Switch Links (includes the filtered column/row itself as highlighted so positions never change) */}
+          {counterparts.columns.length + counterparts.rows.length > 1 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-indigo-200/60 dark:border-indigo-800/60 text-xs">
               <div className="flex items-center space-x-1 text-indigo-700 dark:text-indigo-300 font-semibold text-[11px] mr-0.5 shrink-0 select-none">
                 <ArrowLeftRight className="w-3.5 h-3.5" />
-                <span>対応先:</span>
+                <span>切替:</span>
               </div>
 
               {/* Counterpart Columns */}
-              {counterparts.columns.map((col) => (
-                <button
-                  key={col.id}
-                  onClick={() => handleFilterByColumn(col.id)}
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700/80 hover:bg-sky-50 dark:hover:bg-sky-900/40 hover:border-sky-400 dark:hover:border-sky-500 text-slate-800 dark:text-slate-200 text-xs transition-colors shadow-2xs group cursor-pointer"
-                  title={`列「${col.glyph}」(${col.primary_onyomi || '部品'}) フィルターに切り替え`}
-                >
-                  <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-900/80 text-sky-800 dark:text-sky-300">
-                    列
-                  </span>
-                  <span className="font-kanji font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                    {col.glyph}
-                  </span>
-                  {col.primary_onyomi && (
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                      ({col.primary_onyomi})
+              {counterparts.columns.map((col) => {
+                const isActive = focusedColId === col.id;
+                return (
+                  <button
+                    key={col.id}
+                    onClick={() => handleFilterByColumn(col.id)}
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs transition-all shadow-2xs group cursor-pointer ${
+                      isActive
+                        ? 'bg-sky-600 dark:bg-sky-600 text-white border border-sky-500 font-bold shadow-xs ring-2 ring-sky-400/40'
+                        : 'bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700/80 hover:bg-sky-50 dark:hover:bg-sky-900/40 hover:border-sky-400 dark:hover:border-sky-500 text-slate-800 dark:text-slate-200'
+                    }`}
+                    title={
+                      isActive
+                        ? `列「${col.glyph}」選択中（クリックで解除）`
+                        : `列「${col.glyph}」(${col.primary_onyomi || '部品'}) フィルターに切り替え`
+                    }
+                  >
+                    <span
+                      className={`px-1 py-0.2 rounded text-[10px] font-bold ${
+                        isActive
+                          ? 'bg-sky-700/90 text-white'
+                          : 'bg-sky-100 dark:bg-sky-900/80 text-sky-800 dark:text-sky-300'
+                      }`}
+                    >
+                      列
                     </span>
-                  )}
-                  <span className="text-[10px] font-mono text-sky-700 dark:text-sky-400 font-semibold">
-                    {col.kanji_count}字
-                  </span>
-                </button>
-              ))}
+                    <span
+                      className={`font-kanji font-bold text-sm ${
+                        isActive
+                          ? 'text-white'
+                          : 'text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400'
+                      }`}
+                    >
+                      {col.glyph}
+                    </span>
+                    {col.primary_onyomi && (
+                      <span
+                        className={`text-[11px] ${
+                          isActive ? 'text-sky-100' : 'text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        ({col.primary_onyomi})
+                      </span>
+                    )}
+                    <span
+                      className={`text-[10px] font-mono font-semibold ${
+                        isActive ? 'text-sky-100' : 'text-sky-700 dark:text-sky-400'
+                      }`}
+                    >
+                      {col.kanji_count}字
+                    </span>
+                  </button>
+                );
+              })}
 
               {/* Counterpart Rows */}
-              {counterparts.rows.map((row) => (
-                <button
-                  key={row.id}
-                  onClick={() => handleToggleRowFocus(row.id)}
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700/80 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 hover:border-indigo-400 dark:hover:border-indigo-500 text-slate-800 dark:text-slate-200 text-xs transition-colors shadow-2xs group cursor-pointer"
-                  title={`行「${row.name_ja || row.label}」フォーカスに切り替え`}
-                >
-                  <span className="px-1 py-0.2 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300">
-                    {POSITION_SHORT_NAMES[row.position] || row.position}
-                  </span>
-                  <span className="font-kanji font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                    {row.radical}
-                  </span>
-                  <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate max-w-[130px]">
-                    {row.name_ja || row.label}
-                  </span>
-                  <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
-                    {row.kanji_count}字
-                  </span>
-                </button>
-              ))}
+              {counterparts.rows.map((row) => {
+                const isActive = focusedRowId === row.id;
+                return (
+                  <button
+                    key={row.id}
+                    onClick={() => handleToggleRowFocus(row.id)}
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs transition-all shadow-2xs group cursor-pointer ${
+                      isActive
+                        ? 'bg-indigo-600 dark:bg-indigo-600 text-white border border-indigo-500 font-bold shadow-xs ring-2 ring-indigo-400/40'
+                        : 'bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700/80 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 hover:border-indigo-400 dark:hover:border-indigo-500 text-slate-800 dark:text-slate-200'
+                    }`}
+                    title={
+                      isActive
+                        ? `行「${row.name_ja || row.label}」選択中（クリックで解除）`
+                        : `行「${row.name_ja || row.label}」フォーカスに切り替え`
+                    }
+                  >
+                    <span
+                      className={`px-1 py-0.2 rounded text-[10px] font-bold ${
+                        isActive
+                          ? 'bg-indigo-700/90 text-white'
+                          : 'bg-indigo-100 dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300'
+                      }`}
+                    >
+                      {POSITION_SHORT_NAMES[row.position] || row.position}
+                    </span>
+                    <span
+                      className={`font-kanji font-bold text-sm ${
+                        isActive
+                          ? 'text-white'
+                          : 'text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                      }`}
+                    >
+                      {row.radical}
+                    </span>
+                    <span
+                      className={`text-[11px] truncate max-w-[130px] ${
+                        isActive ? 'text-indigo-100' : 'text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      {row.name_ja || row.label}
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono font-semibold ${
+                        isActive ? 'text-indigo-100' : 'text-indigo-600 dark:text-indigo-400'
+                      }`}
+                    >
+                      {row.kanji_count}字
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

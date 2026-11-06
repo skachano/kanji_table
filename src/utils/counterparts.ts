@@ -144,31 +144,44 @@ export function getAliases(glyph: string): Set<string> {
 }
 
 /**
- * Given a selected column, find:
- * - Counterpart rows (e.g. left:口, top:口, bottom:口, kamae:囗 for column 口)
- * - Counterpart columns (other variant columns in the same alias family, e.g. 氵 for 水)
+ * Given a radical or component glyph, find all counterpart columns and rows in the alias family.
+ * Includes all matching columns and rows in stable, deterministic order.
  */
-export function getCounterpartsForColumn(
-  column: KanjiColumn,
+export function getCounterparts(
+  glyph: string,
   allRows: KanjiRow[],
   allColumns: KanjiColumn[]
 ): CounterpartsResult {
-  const aliases = getAliases(column.glyph);
+  if (!glyph || glyph === 'none' || glyph === '∅') {
+    return { columns: [], rows: [] };
+  }
 
-  // Counterpart rows: rows where radical matches the glyph or aliases, excluding position 'none'
+  const aliases = getAliases(glyph);
+
+  // All columns in the cluster (sorted deterministically)
+  const counterpartCols = allColumns
+    .filter((c) => aliases.has(c.glyph))
+    .sort((a, b) => {
+      if (b.kanji_count !== a.kanji_count) return b.kanji_count - a.kanji_count;
+      return a.id.localeCompare(b.id);
+    });
+
+  // All rows in the cluster (sorted deterministically by position, then count, then id)
   const counterpartRows = allRows
-    .filter((r) => r.position !== 'none' && aliases.has(r.radical))
+    .filter(
+      (r) =>
+        r.position !== 'none' &&
+        r.radical !== 'none' &&
+        r.radical !== '∅' &&
+        aliases.has(r.radical)
+    )
     .sort((a, b) => {
       const posA = POSITION_ORDER[a.position] || 99;
       const posB = POSITION_ORDER[b.position] || 99;
       if (posA !== posB) return posA - posB;
-      return b.kanji_count - a.kanji_count;
+      if (b.kanji_count !== a.kanji_count) return b.kanji_count - a.kanji_count;
+      return a.id.localeCompare(b.id);
     });
-
-  // Counterpart columns: other variant columns in the same cluster
-  const counterpartCols = allColumns
-    .filter((c) => c.id !== column.id && aliases.has(c.glyph))
-    .sort((a, b) => b.kanji_count - a.kanji_count);
 
   return {
     rows: counterpartRows,
@@ -177,38 +190,25 @@ export function getCounterpartsForColumn(
 }
 
 /**
- * Given a selected row, find:
- * - Counterpart columns (e.g. column 口 for left:口 or kamae:囗)
- * - Sibling counterpart rows (e.g. other positions top:口, bottom:口, kamae:囗 for left:口)
+ * Given a selected column, find all counterpart columns and rows in its family
+ * (including the column itself so the switch buttons stay fixed in place).
+ */
+export function getCounterpartsForColumn(
+  column: KanjiColumn,
+  allRows: KanjiRow[],
+  allColumns: KanjiColumn[]
+): CounterpartsResult {
+  return getCounterparts(column.glyph, allRows, allColumns);
+}
+
+/**
+ * Given a selected row, find all counterpart columns and rows in its family
+ * (including the row itself so the switch buttons stay fixed in place).
  */
 export function getCounterpartsForRow(
   row: KanjiRow,
   allRows: KanjiRow[],
   allColumns: KanjiColumn[]
 ): CounterpartsResult {
-  if (row.position === 'none' || row.radical === 'none' || row.radical === '∅') {
-    return { rows: [], columns: [] };
-  }
-
-  const aliases = getAliases(row.radical);
-
-  // Counterpart columns: columns whose glyph matches radical or aliases
-  const counterpartCols = allColumns
-    .filter((c) => aliases.has(c.glyph))
-    .sort((a, b) => b.kanji_count - a.kanji_count);
-
-  // Sibling counterpart rows: rows where radical matches, excluding self and 'none'
-  const siblingRows = allRows
-    .filter((r) => r.id !== row.id && r.position !== 'none' && aliases.has(r.radical))
-    .sort((a, b) => {
-      const posA = POSITION_ORDER[a.position] || 99;
-      const posB = POSITION_ORDER[b.position] || 99;
-      if (posA !== posB) return posA - posB;
-      return b.kanji_count - a.kanji_count;
-    });
-
-  return {
-    rows: siblingRows,
-    columns: counterpartCols,
-  };
+  return getCounterparts(row.radical, allRows, allColumns);
 }
