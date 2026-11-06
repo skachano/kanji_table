@@ -177,6 +177,190 @@ def flatten_tree(node):
         return node
     return "".join(flatten_tree(c) for c in node[1:])
 
+KVG = '{http://kanjivg.tagaini.net}'
+
+def build_kanjivg_tree(g_elem):
+    element = g_elem.get(f'{KVG}element')
+    original = g_elem.get(f'{KVG}original')
+    position = g_elem.get(f'{KVG}position')
+    radical = g_elem.get(f'{KVG}radical')
+    phon = g_elem.get(f'{KVG}phon')
+    part = g_elem.get(f'{KVG}part')
+    variant = g_elem.get(f'{KVG}variant')
+    
+    direct_paths = len(g_elem.findall(f'.//{KVG}path')) + len(g_elem.findall('.//path'))
+    
+    children = []
+    for child in g_elem:
+        tag = child.tag
+        if tag.endswith('g'):
+            c_tree = build_kanjivg_tree(child)
+            if c_tree:
+                children.append(c_tree)
+            
+    res = {}
+    if element: res['element'] = element
+    if original: res['original'] = original
+    if position: res['position'] = position
+    if radical: res['radical'] = radical
+    if phon: res['phon'] = phon
+    if part:
+        try: res['part'] = int(part)
+        except: pass
+    if variant == 'true': res['variant'] = True
+    if direct_paths > 0: res['strokes'] = direct_paths
+    if children: res['children'] = children
+    return res
+
+def ids_to_decomp_tree(char, node):
+    if isinstance(node, str):
+        return {'element': node}
+    op = node[0]
+    children = []
+    if op == '⿰':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'left'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        c2['position'] = 'right'
+        children = [c1, c2]
+    elif op == '⿱':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'top'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        c2['position'] = 'bottom'
+        children = [c1, c2]
+    elif op == '⿺':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'nyo'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        children = [c1, c2]
+    elif op == '⿸':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'tare'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        children = [c1, c2]
+    elif op in '⿴⿵⿶⿷⿹':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'kamae'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        children = [c1, c2]
+    elif op == '⿲':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'left'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        c2['position'] = 'middle'
+        c3 = ids_to_decomp_tree(flatten_tree(node[3]), node[3])
+        c3['position'] = 'right'
+        children = [c1, c2, c3]
+    elif op == '⿳':
+        c1 = ids_to_decomp_tree(flatten_tree(node[1]), node[1])
+        c1['position'] = 'top'
+        c2 = ids_to_decomp_tree(flatten_tree(node[2]), node[2])
+        c2['position'] = 'middle'
+        c3 = ids_to_decomp_tree(flatten_tree(node[3]), node[3])
+        c3['position'] = 'bottom'
+        children = [c1, c2, c3]
+    else:
+        children = [ids_to_decomp_tree(flatten_tree(c), c) for c in node[1:]]
+
+    return {
+        'element': char,
+        'children': children
+    }
+
+STANDALONE_RADICALS = set('一丨丶丿乙亅二亠人儿入八冂冖冫几凵刀力勹匕匚匸十卜卩厂厶又口囗土士夂夊夕大女子宀寸小尢尸屮山巛工己巾干幺广廴廾弋弓彐彡彳心戈戶手支攴文斗斤方无日曰月木欠止歹殳毋比毛氏气水火爪父爻爿片牙牛犬玄玉瓜瓦甘生日用田疋疒癶白皮皿目矛矢石示禹禾穴立竹米糸缶网羊羽老而耒耳聿肉臣自至臼舌舛舟艮色艸虍虫血行衣襾見角言谷豆豕豸貝赤走足身車辛辰辵邑酉釆里金長門阜隶隹雨青非面革韋韭音頁風飛食首香馬骨高髟鬥鬯鬲鬼魚鳥鹵鹿麥麻黃黍黑黹黽鼎鼓鼠鼻齊齒龍龜龠')
+KNOWN_BOTTOM = {'木', '土', '貝', '力', '子', '女', '手', '日', '月', '示', '心', '灬', '皿', '儿', '大', '口', '見', '虫', '糸', '金', '足', '立', '言', '寸', '巾'}
+KNOWN_RIGHT = {'刂', '力', '攵', '殳', '欠', '頁', '隹', '鳥', '羽', '斗', '斤', '卩', '阝'}
+
+def get_node_text(g):
+    elem = g.get(f'{KVG}element')
+    if elem:
+        return elem
+    orig = g.get(f'{KVG}original')
+    if orig:
+        return orig
+    sub = []
+    for c in g:
+        if c.tag.endswith('g'):
+            sub.append(get_node_text(c))
+    text = ''.join(sub)
+    if '⺍' in text and '冖' in text:
+        return '⺍冖'
+    return text
+
+def decompose_kanjivg(char, k_elem):
+    if char in STANDALONE_RADICALS:
+        return 'none', '∅', char
+        
+    top_g = k_elem.find('g')
+    if top_g is None:
+        return None
+    children = [c for c in top_g if c.tag.endswith('g')]
+    if not children:
+        return None
+        
+    part1_elems = [c for c in children if c.get(f'{KVG}part') == '1']
+    if part1_elems:
+        p1 = part1_elems[0]
+        elem = p1.get(f'{KVG}element')
+        non_parts = [c for c in children if c.get(f'{KVG}element') != elem]
+        if non_parts:
+            inside = get_node_text(non_parts[0])
+            if elem == '行':
+                inside = inside.replace('行', '')
+                return 'kamae', '行', inside
+            elif elem == '衣':
+                inside = inside.replace('衣', '')
+                return 'kamae', '衣', inside
+            pos = p1.get(f'{KVG}position')
+            if pos:
+                return pos, elem, inside
+
+    if len(children) == 2:
+        c1, c2 = children[0], children[1]
+        t1, t2 = get_node_text(c1), get_node_text(c2)
+        pos1, pos2 = c1.get(f'{KVG}position'), c2.get(f'{KVG}position')
+        r1, r2 = c1.get(f'{KVG}radical'), c2.get(f'{KVG}radical')
+        
+        if not t1 or not t2:
+            return None
+            
+        # Pattern B: Crown family (⺍冖) -> prefer bottom radical as row
+        if t1 in ('⺍冖', '𭕄冖') or ('⺍' in t1 and '冖' in t1):
+            t1 = '⺍冖'
+            if r2 in ('general', 'tradit') or t2 in KNOWN_BOTTOM:
+                return 'bottom', t2, t1
+            return 'top', t1, t2
+            
+        is_rad1 = r1 in ('general', 'tradit')
+        is_rad2 = r2 in ('general', 'tradit')
+        
+        # If c2 is explicitly marked as radical and c1 is not (Pattern B)
+        if is_rad2 and not is_rad1:
+            p = pos2 or ('bottom' if t2 in KNOWN_BOTTOM else 'right')
+            return p, t2, t1
+            
+        # If c1 is explicitly marked as radical and c2 is not
+        if is_rad1 and not is_rad2:
+            p = pos1 or ('top' if pos2 == 'bottom' else 'left')
+            return p, t1, t2
+            
+        # If neither or both: check positions and known radicals
+        if pos2 == 'bottom' and t2 in KNOWN_BOTTOM:
+            return 'bottom', t2, t1
+        if pos1 == 'top':
+            return 'top', t1, t2
+        if pos1 == 'left':
+            if t2 in KNOWN_RIGHT and is_rad2:
+                return 'right', t2, t1
+            return 'left', t1, t2
+        if pos2 == 'right' and t2 in KNOWN_RIGHT:
+            return 'right', t2, t1
+        if pos1 in ('tare', 'nyo', 'kamae'):
+            return pos1, t1, t2
+
+    return None
+
 def load_overrides():
     if os.path.exists(OVERRIDES_FILE):
         with open(OVERRIDES_FILE, "r", encoding="utf-8") as f:
@@ -214,6 +398,24 @@ def main():
                     ids_trees[char] = (raw, tree)
     print(f"Loaded {len(ids_trees)} IDS sequences.")
 
+    # 2b. Load KanjiVG XML
+    kanjivg_path = os.path.join(DATA_RAW, "kanjivg.xml.gz")
+    kanjivg_elements = {}
+    if os.path.exists(kanjivg_path):
+        with gzip.open(kanjivg_path, "rb") as f:
+            kvg_tree = ET.parse(f)
+            kvg_root = kvg_tree.getroot()
+            for kanji_elem in kvg_root.findall("kanji"):
+                kid = kanji_elem.get("id", "")
+                if kid.startswith("kvg:kanji_"):
+                    hex_str = kid.replace("kvg:kanji_", "")
+                    try:
+                        c = chr(int(hex_str, 16))
+                        kanjivg_elements[c] = kanji_elem
+                    except Exception:
+                        pass
+        print(f"Loaded {len(kanjivg_elements)} KanjiVG character trees.")
+
     # Target kanji set: All Jōyō + Jinmeiyō (grade 9 & 10 from KANJIDIC)
     # Exclude CJK Compatibility Ideographs block (0xF900-0xFAFF) which are legacy duplicate code points
     target_kanji = {}
@@ -238,7 +440,13 @@ def main():
             ov = kanji_overrides[char]
             return ov["position"], ov["radical"], ov["base"]
 
-        # 2. Parse via IDS
+        # 2. Decompose via KanjiVG (Pattern B: prefer radicals as rows)
+        if char in kanjivg_elements:
+            kvg_res = decompose_kanjivg(char, kanjivg_elements[char])
+            if kvg_res:
+                return kvg_res
+
+        # 3. Parse via IDS fallback
         ids_entry = ids_trees.get(char)
         tree = ids_entry[1] if ids_entry else None
         if isinstance(tree, str) or tree is None:
@@ -260,12 +468,11 @@ def main():
         elif op == "⿱":
             top = flatten_tree(tree[1])
             bottom = flatten_tree(tree[2])
-            # Known bottom radicals (ashi)
-            if bottom in ["灬", "心", "皿", "儿", "大", "口"]:
+            # Pattern B: Known bottom radicals (ashi)
+            if bottom in KNOWN_BOTTOM:
                 if bottom == "口" and top not in ["亼"]:
-                    # e.g. 古, 吉, 召, 台, 否
                     return "bottom", "口", top
-                elif bottom in ["灬", "心", "皿", "儿", "大"]:
+                elif bottom != "口":
                     return "bottom", bottom, top
             return "top", top, bottom
 
@@ -294,6 +501,8 @@ def main():
             p1 = flatten_tree(tree[1])
             p2 = flatten_tree(tree[2])
             p3 = flatten_tree(tree[3])
+            if p3 in KNOWN_BOTTOM:
+                return "bottom", p3, p1 + p2
             return "top", p1, p2 + p3
 
         return "none", "∅", char
@@ -360,6 +569,8 @@ def main():
 
         if key in cells:
             existing = cells[key]["kanji"]
+            if existing == char:
+                return
             if existing != char:
                 existing_is_joyo = cells[key]["is_joyo"]
                 # If one is modern Joyo and the other is a traditional/kyujitai variant,
@@ -450,6 +661,23 @@ def main():
         if pos == "none":
             register_cell(char, "none:∅", char, is_base_comp=True)
 
+    # Step C: Populate decomposition tree for each kanji in kanji_index
+    print(f"Building decomposition trees for {len(kanji_index)} kanji...")
+    tree_count = 0
+    for char, kinfo in kanji_index.items():
+        if char in kanjivg_elements:
+            top_g = kanjivg_elements[char].find("g")
+            if top_g is not None:
+                kinfo["decomposition_tree"] = build_kanjivg_tree(top_g)
+                tree_count += 1
+                continue
+        if char in ids_trees:
+            _, parsed_ids = ids_trees[char]
+            if parsed_ids is not None:
+                kinfo["decomposition_tree"] = ids_to_decomp_tree(char, parsed_ids)
+                tree_count += 1
+    print(f"Attached decomposition trees to {tree_count} / {len(kanji_index)} kanji.")
+
     # Collision Audit Check
     print(f"\n--- COLLISION AUDIT ---")
     print(f"Total cells placed: {len(cells)}")
@@ -465,11 +693,27 @@ def main():
     POS_ORDER = {"none": 0, "left": 1, "right": 2, "top": 3, "bottom": 4, "nyo": 5, "tare": 6, "kamae": 7}
     
     unique_rows = []
+    bottom_names = {
+        "木": "きあし", "土": "つちあし", "貝": "かいあし", "心": "こころ",
+        "灬": "れっか", "皿": "さら", "儿": "ひとあし", "大": "だい",
+        "口": "くち", "日": "ひ", "月": "つき", "力": "ちから",
+        "子": "こ", "女": "おんな", "手": "したて", "示": "しめす",
+        "糸": "いと", "金": "かね", "虫": "むし", "見": "みる"
+    }
+    kamae_names = {
+        "行": "ゆきがまえ", "衣": "ころも", "門": "もんがまえ", "囗": "くにがまえ",
+        "勹": "つつみがまえ", "匚": "はこがまえ", "凵": "かんにょう", "戈": "ほこがまえ"
+    }
+    
     for row_id, count in row_counts.items():
         pos, rad = row_id.split(":", 1)
         name_ja = RADICAL_NAMES.get(rad, "")
         if pos == "none":
             name_ja = "基本形 (追加部首なし)"
+        elif pos == "bottom":
+            name_ja = bottom_names.get(rad, name_ja or f"{rad}あし")
+        elif pos == "kamae":
+            name_ja = kamae_names.get(rad, name_ja or f"{rad}がまえ")
         elif pos == "left" and "へん" not in name_ja and rad in RADICAL_NAMES:
             name_ja = RADICAL_NAMES[rad]
         

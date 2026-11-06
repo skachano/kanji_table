@@ -25,7 +25,11 @@
     "馬": { "position": "none", "radical": null, "base": "馬", "notes": "Canonical Kangxi radical 187" },
     "烏": { "position": "none", "radical": null, "base": "烏", "notes": "Standalone character" },
     "連": { "position": "nyo", "radical": "辶", "base": "車" },
-    "蓮": { "position": "top", "radical": "艹", "base": "連" }
+    "蓮": { "position": "top", "radical": "艹", "base": "連" },
+    "只": { "position": "bottom", "radical": "八", "base": "口" },
+    "呉": { "position": "top", "radical": "口", "base": "夨" },
+    "遂": { "position": "nyo", "radical": "辶", "base": "㒸" },
+    "逐": { "position": "nyo", "radical": "辶", "base": "豕" }
   },
   "column_aliases": {
     "𠆢": "人",

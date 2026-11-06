@@ -1,7 +1,9 @@
 import React from 'react';
 import { KanjiCell, KanjiMatrixData } from '../types/kanji';
 import { getGojuonTheme } from '../utils/gojuonColors';
-import { X, GitFork, BookOpen, Layers } from 'lucide-react';
+import { RadicalLogogram, POSITION_CATEGORY_NAMES } from './RadicalLogogram';
+import { DecompositionTreeView } from './DecompositionTreeView';
+import { X, GitFork, BookOpen, Layers, ListTree } from 'lucide-react';
 
 interface KanjiDetailDrawerProps {
   cell: KanjiCell | null;
@@ -22,6 +24,7 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
 
   const theme = getGojuonTheme(cell.gojuon_row);
   const rowInfo = matrixData.rows.find((r) => r.id === cell.row_id);
+  const decompTree = matrixData.kanji_index[cell.kanji]?.decomposition_tree;
 
   // Find all kanji that use this character as their base component
   const derivedKanji = Object.values(matrixData.cells)
@@ -151,16 +154,21 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             {/* Radical / Row */}
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block mb-1">
-                部首・配置 (行)
-              </span>
-              <div className="flex items-center space-x-2">
-                <span className="font-kanji text-xl font-bold text-slate-800 dark:text-slate-200">
-                  {rowInfo?.label || cell.row_id}
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center space-x-3">
+              <RadicalLogogram
+                position={rowInfo?.position || 'none'}
+                radical={rowInfo?.radical || '∅'}
+                size="lg"
+              />
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] text-slate-400 font-medium">
+                  部首・配置 (行)
                 </span>
-                <span className="text-slate-600 dark:text-slate-400">
-                  {rowInfo?.name_ja}
+                <span className="font-kanji text-base font-bold text-slate-800 dark:text-slate-200 truncate">
+                  {rowInfo?.name_ja || rowInfo?.label || cell.row_id}
+                </span>
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
+                  {POSITION_CATEGORY_NAMES[rowInfo?.position || 'none']}
                 </span>
               </div>
             </div>
@@ -214,6 +222,30 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
               </button>
             </div>
           )}
+        </div>
+
+        {/* Hierarchical Decomposition Tree */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <ListTree className="w-4 h-4 text-indigo-500" />
+              構成部品ツリー (Decomposition Tree)
+            </div>
+            {decompTree?.strokes && (
+              <span className="text-[10px] text-slate-400 font-mono">
+                計{decompTree.strokes}画
+              </span>
+            )}
+          </h4>
+          <DecompositionTreeView
+            tree={decompTree}
+            char={cell.kanji}
+            selectedRowId={cell.row_id}
+            selectedColId={cell.col_id}
+            matrixData={matrixData}
+            onJumpToColumn={onJumpToColumn}
+            onSelectKanjiChar={onSelectKanjiChar}
+          />
         </div>
 
         {/* Derived Kanji using this component */}

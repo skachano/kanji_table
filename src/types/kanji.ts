@@ -59,6 +59,7 @@ export interface KanjiRow {
   label: string;
   name_ja: string;
   kanji_count: number;
+  filtered_count?: number;
 }
 
 export interface KanjiColumn {
@@ -70,6 +71,19 @@ export interface KanjiColumn {
   gojuon_row: GojuonRowId | '';
   meanings: string[];
   stroke_count: number | null;
+  filtered_count?: number;
+}
+
+export interface DecompositionNode {
+  element?: string;
+  original?: string;
+  position?: PositionType | string;
+  radical?: 'general' | 'tradit' | 'nelson' | string;
+  phon?: string;
+  part?: number;
+  variant?: boolean;
+  strokes?: number;
+  children?: DecompositionNode[];
 }
 
 export interface KanjiMatrixMetadata {
@@ -89,7 +103,14 @@ export interface KanjiMatrixData {
   rows: KanjiRow[];
   columns: KanjiColumn[];
   cells: Record<string, KanjiCell>;
-  kanji_index: Record<string, { char: string; placements: { row_id: string; col_id: string }[] }>;
+  kanji_index: Record<
+    string,
+    {
+      char: string;
+      placements: { row_id: string; col_id: string }[];
+      decomposition_tree?: DecompositionNode;
+    }
+  >;
 }
 
 export interface FilterState {

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { KanjiRow, KanjiColumn, KanjiCell } from '../types/kanji';
 import { KanjiCard } from './KanjiCard';
+import { RadicalLogogram, POSITION_CATEGORY_NAMES } from './RadicalLogogram';
 
 interface KanjiMatrixProps {
   rows: KanjiRow[];
@@ -9,14 +10,19 @@ interface KanjiMatrixProps {
   cells: Record<string, KanjiCell>;
   selectedKanji: KanjiCell | null;
   highlightedKanjiChar: string | null;
+  focusedRowId: string | null;
+  focusedColId: string | null;
+  isAnyFilterActive?: boolean;
   onSelectKanji: (cell: KanjiCell) => void;
   onJumpToColumn: (colId: string) => void;
+  onToggleRowFocus: (rowId: string) => void;
+  onToggleColFocus: (colId: string) => void;
 }
 
 const COLUMN_WIDTH = 96; // px
 const ROW_HEIGHT = 84; // px
 const HEADER_HEIGHT = 54; // px
-const LEFT_HEADER_WIDTH = 180; // px
+const LEFT_HEADER_WIDTH = 196; // px (expanded slightly to give ample room for logogram + details)
 
 export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
   rows,
@@ -24,12 +30,17 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
   cells,
   selectedKanji,
   highlightedKanjiChar,
+  focusedRowId,
+  focusedColId,
+  isAnyFilterActive = false,
   onSelectKanji,
   onJumpToColumn,
+  onToggleRowFocus,
+  onToggleColFocus,
 }) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // Virtualizer for all vertical rows (Row 0追加部首なし scrolls naturally with all rows)
+  // Virtualizer for all vertical rows
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
@@ -61,11 +72,18 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
     }
   }, [highlightedKanjiChar]);
 
+  // Reset scroll to top whenever row or column focus changes
+  React.useEffect(() => {
+    if (parentRef.current) {
+      parentRef.current.scrollTop = 0;
+    }
+  }, [focusedColId, focusedRowId]);
+
   if (columns.length === 0 || rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-16 text-slate-400 dark:text-slate-600 select-none">
         <p className="text-lg font-medium">該当する漢字が見つかりませんでした</p>
-        <p className="text-sm mt-1">フィルターの条件を変更してください。</p>
+        <p className="text-sm mt-1">フィルターの条件を変更するか、フォーカスを解除してください。</p>
       </div>
     );
   }
@@ -101,7 +119,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
         >
           <div className="p-2.5 h-full flex flex-col justify-center">
             <span className="font-bold text-xs tracking-tight text-slate-800 dark:text-slate-200">
-              部首・配置 \ 部品
+              部首配置図 \ 部品
             </span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
               {columns.length}列 × {rows.length}行
@@ -124,6 +142,15 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
           <div className="relative w-full h-full bg-slate-100/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-300 dark:border-slate-700 pointer-events-auto">
             {virtualCols.map((virtualCol) => {
               const col = columns[virtualCol.index];
+              const isColFocused = focusedColId === col.id;
+              const isColFiltered =
+                isAnyFilterActive ||
+                (col.filtered_count !== undefined && col.filtered_count !== col.kanji_count);
+              const colCountText =
+                isColFiltered && col.filtered_count !== undefined
+                  ? `${col.filtered_count}/${col.kanji_count}字`
+                  : `${col.kanji_count}字`;
+
               return (
                 <div
                   key={col.id}
@@ -134,15 +161,32 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                     width: `${virtualCol.size}px`,
                     height: `${HEADER_HEIGHT}px`,
                   }}
-                  className="p-1 border-r border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center hover:bg-slate-200/80 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
-                  onClick={() => scrollToColumn(col.id)}
-                  title={`部品: ${col.glyph} (${col.kanji_count}字)`}
+                  className={`p-1 border-r flex flex-col items-center justify-center transition-all cursor-pointer select-none group ${
+                    isColFocused
+                      ? 'bg-indigo-100 dark:bg-indigo-950/80 border-indigo-400 dark:border-indigo-600 ring-2 ring-indigo-500 ring-inset z-10'
+                      : 'border-slate-300 dark:border-slate-700 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/50'
+                  }`}
+                  onClick={() => onToggleColFocus(col.id)}
+                  title={`クリックして「${col.glyph}」列のみに絞り込み / 解除 (${colCountText})`}
                 >
-                  <span className="font-kanji text-xl font-bold leading-none text-indigo-700 dark:text-indigo-400">
-                    {col.glyph}
-                  </span>
+                  <div className="flex items-center space-x-1">
+                    <span
+                      className={`font-kanji text-xl font-bold leading-none transition-transform group-hover:scale-110 ${
+                        isColFocused
+                          ? 'text-indigo-900 dark:text-indigo-200 underline decoration-indigo-500 decoration-2'
+                          : 'text-indigo-700 dark:text-indigo-400'
+                      }`}
+                    >
+                      {col.glyph}
+                    </span>
+                    {isColFocused && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                    )}
+                  </div>
                   <div className="flex items-center space-x-1 text-[10px] font-mono text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
-                    <span>{col.kanji_count}字</span>
+                    <span className={isColFiltered ? 'font-semibold text-indigo-600 dark:text-indigo-400' : ''}>
+                      {colCountText}
+                    </span>
                     {col.primary_onyomi && (
                       <span className="opacity-75">({col.primary_onyomi})</span>
                     )}
@@ -167,6 +211,14 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
             {virtualRows.map((virtualRow) => {
               const row = rows[virtualRow.index];
               const isRowZero = row.position === 'none';
+              const isRowFocused = focusedRowId === row.id;
+              const isRowFiltered =
+                isAnyFilterActive ||
+                (row.filtered_count !== undefined && row.filtered_count !== row.kanji_count);
+              const rowCountBadge =
+                isRowFiltered && row.filtered_count !== undefined
+                  ? `${row.filtered_count}/${row.kanji_count}`
+                  : `${row.kanji_count}`;
 
               return (
                 <div
@@ -178,40 +230,72 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                     width: `${LEFT_HEADER_WIDTH}px`,
                     height: `${virtualRow.size}px`,
                   }}
-                  className={`p-2 border-b flex items-center justify-between transition-colors ${
-                    isRowZero
-                      ? 'bg-amber-100/95 dark:bg-amber-950/85 border-amber-300 dark:border-amber-700/60'
-                      : 'border-slate-200 dark:border-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
+                  className={`p-2 border-b flex items-center justify-between transition-all cursor-pointer select-none group ${
+                    isRowFocused
+                      ? 'bg-indigo-100 dark:bg-indigo-950/80 border-indigo-400 dark:border-indigo-600 ring-2 ring-indigo-500 ring-inset z-10'
+                      : isRowZero
+                      ? 'bg-amber-100/95 dark:bg-amber-950/85 border-amber-300 dark:border-amber-700/60 hover:bg-amber-200/80 dark:hover:bg-amber-900/80'
+                      : 'border-slate-200 dark:border-slate-800 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/50'
                   }`}
+                  onClick={() => onToggleRowFocus(row.id)}
+                  title={`クリックして「${row.label}」行のみに絞り込み / 解除 (${rowCountBadge}字)`}
                 >
-                  <div className="flex flex-col overflow-hidden">
-                    <span
-                      className={`font-kanji text-sm font-bold truncate ${
-                        isRowZero
-                          ? 'text-amber-900 dark:text-amber-200'
-                          : 'text-slate-800 dark:text-slate-200'
-                      }`}
-                    >
-                      {row.label}
-                    </span>
-                    <span
-                      className={`text-[10px] truncate ${
-                        isRowZero
-                          ? 'text-amber-700 dark:text-amber-400'
-                          : 'text-slate-500 dark:text-slate-400'
-                      }`}
-                    >
-                      {row.name_ja}
-                    </span>
+                  {/* Left: Radical logogram + Label/Category details */}
+                  <div className="flex items-center space-x-2.5 overflow-hidden min-w-0">
+                    <RadicalLogogram
+                      position={row.position}
+                      radical={row.radical}
+                      size="md"
+                      isFocused={isRowFocused}
+                    />
+
+                    <div className="flex flex-col overflow-hidden min-w-0 leading-tight">
+                      <div className="flex items-center space-x-1">
+                        <span
+                          className={`font-kanji text-sm font-bold truncate ${
+                            isRowFocused
+                              ? 'text-indigo-950 dark:text-indigo-200 underline decoration-indigo-500 decoration-2'
+                              : isRowZero
+                              ? 'text-amber-900 dark:text-amber-200'
+                              : 'text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                          }`}
+                        >
+                          {isRowZero ? '基本形' : row.radical}
+                        </span>
+                        {isRowFocused && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                        )}
+                      </div>
+                      <span
+                        className={`text-[11px] font-medium truncate ${
+                          isRowFocused
+                            ? 'text-indigo-700 dark:text-indigo-300'
+                            : isRowZero
+                            ? 'text-amber-700 dark:text-amber-400'
+                            : 'text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {row.name_ja || row.label}
+                      </span>
+                      <span className="text-[9px] text-slate-400 dark:text-slate-500 truncate">
+                        {POSITION_CATEGORY_NAMES[row.position] || row.position}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Right: Character count badge (x/y) */}
                   <span
-                    className={`text-[10px] font-mono font-medium px-1.5 py-0.5 rounded shrink-0 ml-1 ${
-                      isRowZero
+                    className={`text-[10px] font-mono font-medium px-1.5 py-0.5 rounded shrink-0 ml-1.5 ${
+                      isRowFocused
+                        ? 'bg-indigo-600 text-white font-bold'
+                        : isRowZero
                         ? 'bg-amber-200/90 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 font-bold'
-                        : 'text-slate-400 dark:text-slate-500'
+                        : isRowFiltered
+                        ? 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800'
+                        : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'
                     }`}
                   >
-                    {row.kanji_count}
+                    {rowCountBadge}
                   </span>
                 </div>
               );

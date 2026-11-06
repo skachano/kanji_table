@@ -114,7 +114,7 @@ Every kanji with an On'yomi reading is mapped to one of the **10 Gojūon rows** 
   - Sort rows by: **Number of kanji in row**, **Traditional Kangxi radical order**, or **Stroke count**.
 - **Dynamic Compaction:**
   - Toggle to hide empty rows/columns after applying a filter, or collapse low-density columns (`N = 1`) to focus on high-yield phonetic series first.
-  - **"Focus Mode" on a Column/Row:** Clicking a row or column header compacts the table to show only the intersecting rows/columns that have matching kanji.
+  - **"Focus Mode" on a Column/Row:** Clicking a row header isolates that single radical row and compacts the table to only the columns populated on that row. Clicking a column header isolates that single component column and compacts the table to only the rows populated on that column. Clicking the same header again undoes the filter.
 
 ### 4.3 Kanji Detail Modal / Drawer
 Clicking any kanji card opens an inspection drawer containing:
