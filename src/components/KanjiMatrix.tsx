@@ -14,7 +14,7 @@ interface KanjiMatrixProps {
   focusedColId: string | null;
   isAnyFilterActive?: boolean;
   onSelectKanji: (cell: KanjiCell) => void;
-  onJumpToColumn: (colId: string) => void;
+  onFilterByColumn: (colId: string) => void;
   onToggleRowFocus: (rowId: string) => void;
   onToggleColFocus: (colId: string) => void;
 }
@@ -34,7 +34,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
   focusedColId,
   isAnyFilterActive = false,
   onSelectKanji,
-  onJumpToColumn,
+  onFilterByColumn,
   onToggleRowFocus,
   onToggleColFocus,
 }) => {
@@ -369,8 +369,9 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                     cell={cell}
                     isSelected={selectedKanji?.kanji === cell.kanji}
                     isHighlighted={highlightedKanjiChar === cell.kanji}
+                    focusedColId={focusedColId}
                     onSelect={onSelectKanji}
-                    onJumpToColumn={onJumpToColumn}
+                    onFilterByColumn={onFilterByColumn}
                   />
                 </div>
               );

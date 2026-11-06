@@ -3,22 +3,28 @@ import { KanjiCell, KanjiMatrixData } from '../types/kanji';
 import { getGojuonTheme } from '../utils/gojuonColors';
 import { RadicalLogogram, POSITION_CATEGORY_NAMES } from './RadicalLogogram';
 import { DecompositionTreeView } from './DecompositionTreeView';
-import { X, GitFork, BookOpen, Layers, ListTree } from 'lucide-react';
+import { X, GitFork, BookOpen, Layers, ListTree, Filter } from 'lucide-react';
 
 interface KanjiDetailDrawerProps {
   cell: KanjiCell | null;
   matrixData: KanjiMatrixData;
+  activeComponentFilter?: string | null;
+  focusedColId?: string | null;
+  onFilterByComponent?: (component: string) => void;
+  onFilterByColumn: (colId: string) => void;
   onClose: () => void;
   onSelectKanjiChar: (char: string) => void;
-  onJumpToColumn: (colId: string) => void;
 }
 
 export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
   cell,
   matrixData,
+  activeComponentFilter,
+  focusedColId,
+  onFilterByComponent,
+  onFilterByColumn,
   onClose,
   onSelectKanjiChar,
-  onJumpToColumn,
 }) => {
   if (!cell) return null;
 
@@ -71,6 +77,14 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
               <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-xs font-mono font-medium">
                 {cell.strokes} 画
               </span>
+              {(cell.radical || (rowInfo?.radical && rowInfo.radical !== '∅')) && (
+                <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-xs font-semibold">
+                  部首: {cell.radical || rowInfo?.radical}
+                  {cell.radical_name && (
+                    <span className="font-normal opacity-80 ml-1">({cell.radical_name})</span>
+                  )}
+                </span>
+              )}
               {cell.grade > 0 && (
                 <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-xs font-semibold">
                   {cell.grade <= 6 ? `小${cell.grade}` : cell.grade === 8 ? '中' : '人名用'}
@@ -170,6 +184,11 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
                 <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
                   {POSITION_CATEGORY_NAMES[rowInfo?.position || 'none']}
                 </span>
+                {cell.radical && (cell.row_id === 'none:∅' || cell.radical !== rowInfo?.radical) && (
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold truncate mt-0.5">
+                    伝統部首: {cell.radical} {cell.radical_name ? `(${cell.radical_name})` : ''}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -183,10 +202,20 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
                   {cell.col_id}
                 </span>
                 <button
-                  onClick={() => onJumpToColumn(cell.col_id)}
-                  className="px-1.5 py-0.5 rounded text-[10px] bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-medium"
+                  onClick={() => onFilterByColumn(cell.col_id)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                    focusedColId === cell.col_id
+                      ? 'bg-indigo-600 text-white shadow-xs ring-1 ring-indigo-400'
+                      : 'bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300'
+                  }`}
+                  title={
+                    focusedColId === cell.col_id
+                      ? `「${cell.col_id}」列の絞り込みを解除`
+                      : `「${cell.col_id}」列のみで表を絞り込む`
+                  }
                 >
-                  列を見る
+                  <Filter className="w-2.5 h-2.5" />
+                  <span>{focusedColId === cell.col_id ? '列絞込中' : '列で絞込'}</span>
                 </button>
               </div>
             </div>
@@ -200,10 +229,19 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
                 <span>「{cell.kanji}」は他の漢字の部品としても列を持っています</span>
               </div>
               <button
-                onClick={() => onJumpToColumn(cell.kanji)}
-                className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0"
+                onClick={() => onFilterByColumn(cell.kanji)}
+                className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
+                  focusedColId === cell.kanji
+                    ? 'bg-indigo-700 text-white ring-2 ring-indigo-400'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                }`}
               >
-                {cell.kanji}列へ移動
+                <Filter className="w-3 h-3" />
+                <span>
+                  {focusedColId === cell.kanji
+                    ? `「${cell.kanji}」列絞込解除`
+                    : `「${cell.kanji}」列で絞込`}
+                </span>
               </button>
             </div>
           )}
@@ -215,10 +253,19 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
                 <span>この基本漢字は「{cell.decomposed_as.col_id}」列で分解表示されます</span>
               </div>
               <button
-                onClick={() => onJumpToColumn(cell.decomposed_as!.col_id)}
-                className="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shrink-0"
+                onClick={() => onFilterByColumn(cell.decomposed_as!.col_id)}
+                className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 flex items-center gap-1.5 transition-colors ${
+                  focusedColId === cell.decomposed_as!.col_id
+                    ? 'bg-amber-700 text-white ring-2 ring-amber-400'
+                    : 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm'
+                }`}
               >
-                親列へ移動
+                <Filter className="w-3 h-3" />
+                <span>
+                  {focusedColId === cell.decomposed_as!.col_id
+                    ? `親列(「${cell.decomposed_as!.col_id}」)絞込解除`
+                    : `親列(「${cell.decomposed_as!.col_id}」)で絞込`}
+                </span>
               </button>
             </div>
           )}
@@ -243,7 +290,10 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
             selectedRowId={cell.row_id}
             selectedColId={cell.col_id}
             matrixData={matrixData}
-            onJumpToColumn={onJumpToColumn}
+            activeComponentFilter={activeComponentFilter}
+            focusedColId={focusedColId}
+            onFilterByComponent={onFilterByComponent}
+            onFilterByColumn={onFilterByColumn}
             onSelectKanjiChar={onSelectKanjiChar}
           />
         </div>

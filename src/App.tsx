@@ -14,10 +14,10 @@ const INITIAL_FILTER: FilterState = {
   gradeFilter: 'joyo', // Default to 常用漢字
   jlptFilter: 'all',
   gojuonFilter: 'all',
-  minKanjiPerColumn: 2, // Default to columns with >=2 kanji for rich phonetic series
   hideEmptyRows: true,
   hideEmptyCols: true,
   positionFilter: 'all',
+  componentFilter: null,
 };
 
 export const App: React.FC = () => {
@@ -71,6 +71,17 @@ export const App: React.FC = () => {
     });
   }, []);
 
+  // Toggle component filter from decomposition tree
+  const handleToggleComponentFilter = useCallback((component: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      componentFilter: prev.componentFilter === component ? null : component,
+    }));
+    // Clear any focus so the user sees all matching kanji across the matrix
+    setFocusedRowId(null);
+    setFocusedColId(null);
+  }, []);
+
   // Filter matching cells and compute active columns/rows
   const { filteredCells, activeColumns, activeRows, matchingKanjiCount } = useMemo(() => {
     const q = filter.searchQuery.trim().toLowerCase();
@@ -105,7 +116,15 @@ export const App: React.FC = () => {
         }
       }
 
-      // 5. Search query
+      // 5. Component filter (filter by components/parts in decomposition tree)
+      if (filter.componentFilter) {
+        const kinfo = matrixData.kanji_index[cell.kanji];
+        if (!kinfo?.components?.includes(filter.componentFilter)) {
+          continue;
+        }
+      }
+
+      // 6. Search query
       if (q) {
         const matchesKanji = cell.kanji.includes(q);
         const matchesOn = cell.all_onyomi.some((on) => on.toLowerCase().includes(q));
@@ -123,10 +142,8 @@ export const App: React.FC = () => {
       matchingChars.add(cell.kanji);
     }
 
-    // Filter columns by density & emptiness
+    // Filter columns by emptiness
     let visibleCols = matrixData.columns.filter((col) => {
-      // When a specific row or column is focused, don't prune by minKanjiPerColumn
-      if (!focusedRowId && !focusedColId && col.kanji_count < filter.minKanjiPerColumn) return false;
       if (filter.hideEmptyCols && !colsWithKanji.has(col.id)) return false;
       return true;
     });
@@ -214,12 +231,14 @@ export const App: React.FC = () => {
     );
   }, [filter, focusedRowId, focusedColId]);
 
-  // Jump to column and highlight
-  const handleJumpToColumn = useCallback((colId: string) => {
+  // Filter by column (toggle if same column)
+  const handleFilterByColumn = useCallback((colId: string) => {
+    setFocusedColId((prev) => (prev === colId ? null : colId));
+    setFocusedRowId(null);
     setHighlightedKanjiChar(colId);
     setTimeout(() => {
       setHighlightedKanjiChar(null);
-    }, 2500);
+    }, 2000);
   }, []);
 
   // Select a kanji by character
@@ -316,7 +335,7 @@ export const App: React.FC = () => {
             )}
             {focusedColInfo && (
               <span>
-                列フォーカス中: 部品「<strong>{focusedColInfo.glyph}</strong>」
+                列フィルター中: 部品「<strong>{focusedColInfo.glyph}</strong>」
                 {focusedColInfo.primary_onyomi ? ` (${focusedColInfo.primary_onyomi})` : ''} — 現在 <strong>{activeRows.length}</strong> / {focusedColInfo.kanji_count} 字を表示
               </span>
             )}
@@ -364,8 +383,32 @@ export const App: React.FC = () => {
             }}
             className="flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
           >
-            <span>フォーカス解除</span>
+            <span>{focusedColInfo ? '列絞込解除' : 'フォーカス解除'}</span>
             <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Active Component Filter Banner */}
+      {filter.componentFilter && (
+        <div className="shrink-0 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/60 border-b border-emerald-200 dark:border-emerald-800/80 flex items-center justify-between gap-2 z-20">
+          <div className="flex items-center space-x-2 text-xs text-emerald-900 dark:text-emerald-200">
+            <span className="font-semibold">
+              構成部品フィルター: 「{filter.componentFilter}」を含む漢字
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-bold text-[11px]">
+              {matchingKanjiCount}字
+            </span>
+            <span className="text-emerald-700 dark:text-emerald-400 text-[11px]">
+              ({activeColumns.length}列 · {activeRows.length}行)
+            </span>
+          </div>
+          <button
+            onClick={() => handleToggleComponentFilter(filter.componentFilter!)}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-medium text-xs shadow-2xs transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>フィルター解除</span>
           </button>
         </div>
       )}
@@ -382,7 +425,7 @@ export const App: React.FC = () => {
           focusedColId={focusedColId}
           isAnyFilterActive={isAnyFilterActive}
           onSelectKanji={setSelectedKanji}
-          onJumpToColumn={handleJumpToColumn}
+          onFilterByColumn={handleFilterByColumn}
           onToggleRowFocus={handleToggleRowFocus}
           onToggleColFocus={handleToggleColFocus}
         />
@@ -392,9 +435,12 @@ export const App: React.FC = () => {
       <KanjiDetailDrawer
         cell={selectedKanji}
         matrixData={matrixData}
+        activeComponentFilter={filter.componentFilter}
+        focusedColId={focusedColId}
+        onFilterByComponent={handleToggleComponentFilter}
         onClose={() => setSelectedKanji(null)}
         onSelectKanjiChar={handleSelectKanjiChar}
-        onJumpToColumn={handleJumpToColumn}
+        onFilterByColumn={handleFilterByColumn}
       />
     </div>
   );

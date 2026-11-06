@@ -47,74 +47,31 @@ for row in GOJUON_ROWS:
 
 # Common radical names in Japanese
 RADICAL_NAMES = {
-    "亻": "にんべん",
-    "氵": "さんずい",
-    "扌": "てへん",
-    "木": "きへん",
-    "口": "くちへん",
-    "言": "ごんべん",
-    "糸": "いとへん",
-    "金": "かねへん",
-    "日": "ひへん",
-    "火": "ひへん",
-    "月": "つきへん",
-    "土": "つちへん",
-    "女": "おんなへん",
-    "犭": "けものへん",
-    "禾": "のぎへん",
-    "目": "めへん",
-    "石": "いしへん",
-    "貝": "かいへん",
-    "車": "くるまへん",
-    "虫": "むしへん",
-    "弓": "ゆみへん",
-    "彳": "ぎょうにんべん",
-    "礻": "しめすへん",
-    "足": "あしへん",
-    "酉": "とりへん",
-    "魚": "うおへん",
-    "刂": "りっとう",
-    "力": "ちから",
-    "攵": "のぶん",
-    "殳": "ほこづくり",
-    "欠": "あくび",
-    "頁": "おおがい",
-    "隹": "ふるとり",
-    "鳥": "とり",
-    "羽": "はね",
-    "斗": "とます",
-    "斤": "おのづくり",
-    "卩": "ふしづくり",
-    "艹": "くさかんむり",
-    "⺮": "たけかんむり",
-    "竹": "たけかんむり",
-    "⻗": "あめかんむり",
-    "雨": "あめかんむり",
-    "宀": "うかんむり",
-    "冖": "わかんむり",
-    "穴": "あなかんむり",
-    "⺌": "しょうかんむり",
-    "亠": "なべぶた",
-    "爫": "つめかんむり",
-    "心": "こころ",
-    "灬": "れっか",
-    "皿": "さら",
-    "儿": "ひとあし",
-    "大": "だい",
-    "辶": "しんにょう",
-    "廴": "えんにょう",
-    "走": "そうにょう",
-    "广": "まだれ",
-    "厂": "がんだれ",
-    "疒": "やまいだれ",
-    "尸": "しかばね",
-    "戸": "とだれ",
-    "門": "もんがまえ",
-    "囗": "くにがまえ",
-    "勹": "つつみがまえ",
-    "匚": "はこがまえ",
-    "凵": "かんにょう",
-    "戈": "ほこがまえ",
+    # 1画
+    "一": "いち", "丨": "ぼう・たてぼう", "丶": "てん", "丿": "の・はらいぼう", "乙": "おつ", "⺄": "おつ", "亅": "はねぼう",
+    # 2画
+    "二": "に", "亠": "なべぶた", "人": "ひと", "亻": "にんべん", "𠆢": "ひとやね", "儿": "ひとあし", "入": "いる", "八": "はち", "冂": "まきがまえ", "冖": "わかんむり", "冫": "にすい", "几": "きにょう", "凵": "かんにょう", "刀": "かたな", "刂": "りっとう", "力": "ちから", "勹": "つつみがまえ", "匕": "さじ", "匚": "はこがまえ", "匸": "かくしがまえ", "十": "じゅう", "卜": "ぼく・うらない", "卩": "ふしづくり", "⺋": "まげわりふ", "厂": "がんだれ", "厶": "む", "又": "また",
+    # 3画
+    "口": "くち・くちへん", "囗": "くにがまえ", "土": "つち・つちへん", "士": "さむらい", "夂": "ふゆがしら", "夊": "すいにょう", "夕": "ゆうべ", "大": "だい・だいがしら", "女": "おんな・おんなへん", "子": "こ・こへん", "宀": "うかんむり", "寸": "すん", "小": "しょう", "⺌": "しょうかんむり", "⺍": "つかんむり", "尢": "だいのまげあし", "尸": "しかばね", "屮": "てつ", "山": "やま・やまへん", "巛": "かわ", "川": "かわ", "工": "こう", "己": "おのれ", "已": "すで", "巳": "み", "巾": "はば・はばへん", "干": "かん", "幺": "いとがしら", "广": "まだれ", "廴": "えんにょう", "廾": "こまぬき", "弋": "しきがまえ", "弓": "ゆみ・ゆみへん", "彐": "けいがしら", "彑": "けいがしら", "彡": "さんづくり", "彳": "ぎょうにんべん",
+    # 4画
+    "心": "こころ", "忄": "りっしんべん", "⺗": "したごころ", "戈": "ほこがまえ", "戶": "と・とだれ", "戸": "とだれ", "手": "て", "扌": "てへん", "支": "しにょう", "攴": "ぼくづくり", "攵": "のぶん", "文": "ぶん", "斗": "とます", "斤": "おのづくり", "方": "ほう・ほうへん", "无": "むにょう", "日": "ひ・ひへん", "曰": "ひらび", "月": "つき・つきへん", "⺼": "にくづき", "木": "き・きへん", "欠": "あくび", "止": "とめる", "歹": "がつへん", "殳": "ほこづくり", "毋": "なかれ", "比": "くらべる", "毛": "け", "氏": "うじ", "气": "きがまえ", "水": "みず", "氵": "さんずい", "氺": "したみず", "火": "ひ・ひへん", "灬": "れっか", "爪": "つめ", "爫": "つめかんむり", "父": "ちち", "爻": "こう", "爿": "しょうへん", "片": "かたへん", "牙": "きば", "牛": "うし", "牜": "うしへん", "犬": "いぬ", "犭": "けものへん",
+    # 5画
+    "玄": "げん", "玉": "たま", "王": "おうへん", "瓜": "うり", "瓦": "かわら", "甘": "あまい", "生": "せい", "用": "もちいる", "田": "た・たへん", "疋": "ひき", "疒": "やまいだれ", "癶": "はつがしら", "白": "しろ・しろへん", "皮": "けがわ", "皿": "さら", "目": "め・めへん", "矛": "ほこ", "矢": "や・やへん", "石": "いし・いしへん", "示": "しめす", "礻": "しめすへん", "禸": "ぐうのあし", "禾": "のぎへん", "穴": "あなかんむり", "立": "たつ・たつへん",
+    # 6画
+    "竹": "たけ・たけかんむり", "⺮": "たけかんむり", "米": "こめ・こめへん", "糸": "いと・いとへん", "缶": "ほとぎ", "网": "あみがしら", "罒": "あみがしら", "羊": "ひつじ", "⺷": "ひつじ", "羽": "はね", "老": "おいかんむり", "耂": "おいかんむり", "而": "しこうして", "耒": "すきへん", "耳": "みみ・みみへん", "聿": "ふでづくり", "肉": "にく", "臣": "しん", "自": "みずから", "至": "いたる", "臼": "うす", "舌": "した", "舛": "ます", "舟": "ふね・ふねへん", "艮": "うしとら", "色": "いろ", "艸": "くさ", "艹": "くさかんむり", "虍": "とらかんむり", "虫": "むし・むしへん", "血": "ち", "行": "ぎょうがまえ", "衣": "ころも", "衤": "ころもへん", "襾": "おおいかんむり", "西": "にし", "覀": "にし",
+    # 7画
+    "見": "みる", "角": "つの", "言": "ごんべん", "谷": "たに", "豆": "まめ", "豕": "いのこ", "豸": "むじな", "貝": "かい・かいへん", "赤": "あか", "走": "そうにょう", "足": "あし・あしへん", "身": "み・みへん", "車": "くるま・くるまへん", "辛": "からい", "辰": "しんのたつ", "辵": "しんにょう", "辶": "しんにょう", "⻌": "しんにょう", "⻍": "しんにょう", "⻎": "しんにょう", "邑": "おおざと", "阝": "こざとへん・おおざと", "⻏": "おおざと", "⻖": "こざとへん", "酉": "とりへん", "釆": "のごめ", "里": "さと",
+    # 8画
+    "金": "かねへん", "長": "ながい", "門": "もんがまえ", "阜": "こざとへん", "隶": "れいづくり", "隹": "ふるとり", "雨": "あめかんむり", "⻗": "あめかんむり", "靑": "あお", "青": "あお", "非": "あらず",
+    # 9画
+    "面": "めん", "革": "かわへん", "韋": "なめしがわ", "韭": "にら", "音": "おと", "頁": "おおがい", "風": "かぜ", "飛": "とぶ", "食": "しょくへん", "飠": "しょくへん", "⻞": "しょくへん", "⻟": "しょくへん", "首": "くび", "香": "かおり",
+    # 10画以上
+    "馬": "うま・うまへん", "骨": "ほね・ほねへん", "高": "たかい", "髟": "かみがしら", "鬥": "とうがまえ", "鬯": "ちょう", "鬲": "かなえ", "鬼": "おに",
+    "魚": "うおへん", "鳥": "とり", "鹵": "ろ", "鹿": "しか", "麦": "むぎ", "麥": "むぎ", "麻": "あさ",
+    "黄": "き", "黍": "きび", "黒": "くろ", "黹": "ぬいとり",
+    "黽": "べん", "鼎": "かなえ", "鼓": "つづみ", "鼠": "ねずみ",
+    "鼻": "はな", "齊": "せい", "斉": "せい", "齒": "は", "歯": "は",
+    "龍": "りゅう", "竜": "りゅう", "龜": "かめ", "亀": "かめ", "龠": "やく",
 }
 
 def hira_to_kata(hira: str) -> str:
@@ -309,6 +266,16 @@ def sanitize_pos(pos, default='left'):
         return 'nyo'
     return default
 
+def get_node_accounted_strokes(g):
+    elem = g.get(f'{KVG}element') or g.get(f'{KVG}original')
+    if elem:
+        return len(g.findall(f'.//{KVG}path')) + len(g.findall('.//path'))
+    sub_strokes = 0
+    for c in g:
+        if c.tag.endswith('g'):
+            sub_strokes += get_node_accounted_strokes(c)
+    return sub_strokes
+
 def decompose_kanjivg(char, k_elem):
     if char in STANDALONE_RADICALS:
         return 'none', '∅', char
@@ -316,6 +283,7 @@ def decompose_kanjivg(char, k_elem):
     top_g = k_elem.find('g')
     if top_g is None:
         return None
+    total_strokes = len(top_g.findall(f'.//{KVG}path')) + len(top_g.findall('.//path'))
     children = [c for c in top_g if c.tag.endswith('g')]
     if not children:
         return None
@@ -342,8 +310,16 @@ def decompose_kanjivg(char, k_elem):
         pos1, pos2 = c1.get(f'{KVG}position'), c2.get(f'{KVG}position')
         r1, r2 = c1.get(f'{KVG}radical'), c2.get(f'{KVG}radical')
         
+        # Stroke count validation:
+        # If the extracted sub-parts do not account for all strokes of the kanji,
+        # represent kanji as kanji + ∅ (Row 0 / atomic base component)
+        acc1 = get_node_accounted_strokes(c1)
+        acc2 = get_node_accounted_strokes(c2)
+        if acc1 + acc2 != total_strokes:
+            return 'none', '∅', char
+            
         if not t1 or not t2:
-            return None
+            return 'none', '∅', char
             
         # Pattern B: Crown family (⺍冖) -> prefer bottom radical as row
         if t1 in ('⺍冖', '𭕄冖') or ('⺍' in t1 and '冖' in t1):
@@ -429,6 +405,7 @@ def main():
     # 2b. Load KanjiVG XML
     kanjivg_path = os.path.join(DATA_RAW, "kanjivg.xml.gz")
     kanjivg_elements = {}
+    kvg_radicals = {}
     if os.path.exists(kanjivg_path):
         with gzip.open(kanjivg_path, "rb") as f:
             kvg_tree = ET.parse(f)
@@ -440,9 +417,24 @@ def main():
                     try:
                         c = chr(int(hex_str, 16))
                         kanjivg_elements[c] = kanji_elem
+                        general = None
+                        tradit = None
+                        nelson = None
+                        for g in kanji_elem.iter():
+                            r = g.get(f'{KVG}radical')
+                            e = g.get(f'{KVG}element')
+                            if r == 'general' and not general and e:
+                                general = e
+                            elif r == 'tradit' and not tradit and e:
+                                tradit = e
+                            elif r == 'nelson' and not nelson and e:
+                                nelson = e
+                        chosen = general or tradit or nelson
+                        if chosen:
+                            kvg_radicals[c] = chosen
                     except Exception:
                         pass
-        print(f"Loaded {len(kanjivg_elements)} KanjiVG character trees.")
+        print(f"Loaded {len(kanjivg_elements)} KanjiVG character trees ({len(kvg_radicals)} radicals).")
 
     # Target kanji set: All Jōyō + Jinmeiyō (grade 9 & 10 from KANJIDIC)
     # Exclude CJK Compatibility Ideographs block (0xF900-0xFAFF) which are legacy duplicate code points
@@ -644,6 +636,12 @@ def main():
                 "col_id": decomp_base,
             }
 
+        # Resolve radical
+        kvg_rad = kvg_radicals.get(char)
+        row_rad = row_id.split(':')[1] if ':' in row_id else '∅'
+        resolved_rad = kvg_rad or (row_rad if row_rad != '∅' else char)
+        rad_name = RADICAL_NAMES.get(resolved_rad, "")
+
         cell_data = {
             "kanji": char,
             "row_id": row_id,
@@ -656,6 +654,8 @@ def main():
             "jlpt": info.get("jlpt_new") or info.get("jlpt_old"),
             "frequency": info.get("freq"),
             "strokes": info.get("strokes", 0),
+            "radical": resolved_rad,
+            "radical_name": rad_name,
             "meanings": info.get("meanings", []),
             "all_onyomi": [hira_to_kata(r) for r in info.get("readings_on", [])],
             "all_kunyomi": info.get("readings_kun", []),
@@ -669,7 +669,12 @@ def main():
         col_counts[col_id] = col_counts.get(col_id, 0) + 1
 
         if char not in kanji_index:
-            kanji_index[char] = {"char": char, "placements": []}
+            kanji_index[char] = {
+                "char": char,
+                "radical": resolved_rad,
+                "radical_name": rad_name,
+                "placements": []
+            }
         kanji_index[char]["placements"].append({"row_id": row_id, "col_id": col_id})
 
     # Step A: Place decomposed composite kanji
@@ -705,6 +710,25 @@ def main():
                 kinfo["decomposition_tree"] = ids_to_decomp_tree(char, parsed_ids)
                 tree_count += 1
     print(f"Attached decomposition trees to {tree_count} / {len(kanji_index)} kanji.")
+
+    # Step D: Precompute unique components list from decomposition tree for filtering
+    def collect_tree_elements(node):
+        if not node:
+            return set()
+        res = set()
+        elem = node.get("element")
+        if elem:
+            res.add(elem)
+        orig = node.get("original")
+        if orig:
+            res.add(orig)
+        for c in node.get("children", []):
+            res.update(collect_tree_elements(c))
+        return res
+
+    for char, kinfo in kanji_index.items():
+        tree = kinfo.get("decomposition_tree")
+        kinfo["components"] = sorted(list(collect_tree_elements(tree)))
 
     # Collision Audit Check
     print(f"\n--- COLLISION AUDIT ---")

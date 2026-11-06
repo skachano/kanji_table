@@ -40,6 +40,8 @@ export interface KanjiCell {
   jlpt: number | null;
   frequency: number | null;
   strokes: number;
+  radical?: string;
+  radical_name?: string;
   meanings: string[];
   all_onyomi: string[];
   all_kunyomi: string[];
@@ -107,8 +109,11 @@ export interface KanjiMatrixData {
     string,
     {
       char: string;
+      radical?: string;
+      radical_name?: string;
       placements: { row_id: string; col_id: string }[];
       decomposition_tree?: DecompositionNode;
+      components?: string[];
     }
   >;
 }
@@ -118,8 +123,8 @@ export interface FilterState {
   gradeFilter: 'all' | 'joyo' | 'elementary' | 'secondary' | 'jinmeiyo';
   jlptFilter: 'all' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   gojuonFilter: GojuonRowId | 'all';
-  minKanjiPerColumn: number;
   hideEmptyRows: boolean;
   hideEmptyCols: boolean;
   positionFilter: PositionType | 'all';
+  componentFilter: string | null;
 }

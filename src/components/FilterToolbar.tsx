@@ -3,7 +3,7 @@ import { FilterState, GojuonRowId, GojuonRowInfo, PositionType } from '../types/
 import { GOJUON_THEMES } from '../utils/gojuonColors';
 import { Search, X, Sparkles, LayoutGrid } from 'lucide-react';
 
-export const RADICAL_POSITIONS: { id: PositionType | 'all'; label: string; desc: string }[] = [
+const RADICAL_POSITIONS: { id: PositionType | 'all'; label: string; desc: string }[] = [
   { id: 'all', label: 'すべて', desc: '全配置' },
   { id: 'left', label: '偏 (へん)', desc: '左側' },
   { id: 'right', label: '旁 (つくり)', desc: '右側' },
@@ -130,27 +130,6 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
               </option>
             ))}
           </select>
-
-          {/* Min kanji per column selector */}
-          <div className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">列密度:</span>
-            {[1, 2, 3, 5].map((count) => (
-              <button
-                key={count}
-                type="button"
-                onClick={() =>
-                  onFilterChange((prev) => ({ ...prev, minKanjiPerColumn: count }))
-                }
-                className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition-colors ${
-                  filter.minKanjiPerColumn === count
-                    ? 'bg-indigo-600 text-white font-bold'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {count}字+
-              </button>
-            ))}
-          </div>
 
           {/* Hide empty rows/cols toggles */}
           <label className="flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">

@@ -6,16 +6,18 @@ interface KanjiCardProps {
   cell: KanjiCell;
   isSelected?: boolean;
   isHighlighted?: boolean;
+  focusedColId?: string | null;
   onSelect: (cell: KanjiCell) => void;
-  onJumpToColumn?: (colId: string) => void;
+  onFilterByColumn?: (colId: string) => void;
 }
 
 export const KanjiCard: React.FC<KanjiCardProps> = ({
   cell,
   isSelected,
   isHighlighted,
+  focusedColId,
   onSelect,
-  onJumpToColumn,
+  onFilterByColumn,
 }) => {
   const theme = getGojuonTheme(cell.gojuon_row);
 
@@ -31,7 +33,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
         ${isSelected ? 'ring-2 ring-indigo-500 ring-offset-1 z-20 shadow-md scale-[1.03]' : ''}
         ${isHighlighted ? 'ring-2 ring-amber-400 ring-offset-1 z-10' : ''}
       `}
-      title={`${cell.kanji} (${cell.primary_onyomi || '訓のみ'}) - ${cell.meanings.slice(0, 2).join(', ')}`}
+      title={`${cell.kanji} (${cell.primary_onyomi || '訓のみ'})${cell.radical ? ` [部首: ${cell.radical}]` : ''} - ${cell.meanings.slice(0, 2).join(', ')}`}
     >
       {/* Top row: On'yomi reading & Voicing indicator */}
       <div className="w-full flex items-center justify-between text-[11px] leading-none px-0.5">
@@ -60,18 +62,26 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           {cell.strokes}画
         </span>
 
-        {/* Has own column navigation badge */}
-        {cell.has_own_column && !cell.is_base_component && onJumpToColumn ? (
+        {/* Has own column filter badge */}
+        {cell.has_own_column && !cell.is_base_component && onFilterByColumn ? (
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onJumpToColumn(cell.kanji);
+              onFilterByColumn(cell.kanji);
             }}
-            className="px-1 py-0.5 rounded bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/60 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-300 font-semibold text-[9px] tracking-tight transition-colors"
-            title={`Jump to Column ${cell.kanji}`}
+            className={`px-1 py-0.5 rounded font-semibold text-[9px] tracking-tight transition-colors ${
+              focusedColId === cell.kanji
+                ? 'bg-indigo-600 text-white shadow-2xs ring-1 ring-indigo-400'
+                : 'bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/60 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-300'
+            }`}
+            title={
+              focusedColId === cell.kanji
+                ? `「${cell.kanji}」列の絞り込みを解除`
+                : `「${cell.kanji}」列のみで絞り込む`
+            }
           >
-            →列
+            {focusedColId === cell.kanji ? '列絞込中' : '列絞込'}
           </button>
         ) : cell.is_base_component ? (
           <span className="px-1 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[8px] font-semibold">
