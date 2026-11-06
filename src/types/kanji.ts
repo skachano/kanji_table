@@ -42,6 +42,8 @@ export interface KanjiCell {
   strokes: number;
   radical?: string;
   radical_name?: string;
+  old_form?: string | null;
+  new_form?: string | null;
   meanings: string[];
   all_onyomi: string[];
   all_kunyomi: string[];
@@ -111,6 +113,8 @@ export interface KanjiMatrixData {
       char: string;
       radical?: string;
       radical_name?: string;
+      old_form?: string | null;
+      new_form?: string | null;
       placements: { row_id: string; col_id: string }[];
       decomposition_tree?: DecompositionNode;
       components?: string[];

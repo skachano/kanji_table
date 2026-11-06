@@ -108,10 +108,10 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
         }}
       >
         {/* ========================================================= */}
-        {/* 1. TOP-LEFT FIXED CORNER (Sticky left & top, zIndex: 40) */}
+        {/* 1. TOP-LEFT FIXED CORNER (Sticky left & top, zIndex: 50) */}
         {/* ========================================================= */}
         <div
-          className="sticky top-0 left-0 z-40 bg-slate-200/95 dark:bg-slate-800/95 backdrop-blur-md border-r border-b border-slate-300 dark:border-slate-700"
+          className="sticky top-0 left-0 z-50 bg-slate-200/95 dark:bg-slate-800/95 backdrop-blur-md border-r border-b border-slate-300 dark:border-slate-700"
           style={{
             width: `${LEFT_HEADER_WIDTH}px`,
             height: `${HEADER_HEIGHT}px`,
@@ -198,10 +198,10 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
         </div>
 
         {/* ========================================================= */}
-        {/* 3. LEFT STICKY ROW HEADERS (Sticky left, zIndex: 20)      */}
+        {/* 3. LEFT STICKY ROW HEADERS (Sticky left, zIndex: 30)      */}
         {/* ========================================================= */}
         <div
-          className="sticky left-0 z-20 pointer-events-none"
+          className="sticky left-0 z-30 pointer-events-none"
           style={{
             width: `${LEFT_HEADER_WIDTH}px`,
             height: `${totalGridHeight}px`,
@@ -307,8 +307,10 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
         {/* 4. VIRTUALIZED DATA GRID CELLS (zIndex: 10)               */}
         {/* ========================================================= */}
         <div
+          className="z-10"
           style={{
             position: 'absolute',
+            zIndex: 10,
             top: `${HEADER_HEIGHT}px`,
             left: `${LEFT_HEADER_WIDTH}px`,
             width: `${totalGridWidth}px`,
@@ -347,6 +349,9 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                 );
               }
 
+              const isSelected = selectedKanji?.kanji === cell.kanji;
+              const isHighlighted = highlightedKanjiChar === cell.kanji;
+
               // Render active KanjiCard
               return (
                 <div
@@ -358,6 +363,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                     width: `${virtualCol.size}px`,
                     height: `${virtualRow.size}px`,
                     padding: '4px',
+                    zIndex: isSelected ? 2 : isHighlighted ? 1 : 0,
                   }}
                   className={`border-r border-b ${
                     isRowZero
@@ -367,8 +373,8 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                 >
                   <KanjiCard
                     cell={cell}
-                    isSelected={selectedKanji?.kanji === cell.kanji}
-                    isHighlighted={highlightedKanjiChar === cell.kanji}
+                    isSelected={isSelected}
+                    isHighlighted={isHighlighted}
                     focusedColId={focusedColId}
                     onSelect={onSelectKanji}
                     onFilterByColumn={onFilterByColumn}

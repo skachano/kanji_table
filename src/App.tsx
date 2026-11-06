@@ -242,12 +242,50 @@ export const App: React.FC = () => {
   }, []);
 
   // Select a kanji by character
-  const handleSelectKanjiChar = useCallback((char: string) => {
-    const entry = Object.values(matrixData.cells).find((c) => c.kanji === char);
-    if (entry) {
-      setSelectedKanji(entry);
-    }
-  }, []);
+  const handleSelectKanjiChar = useCallback(
+    (char: string) => {
+      // 1. Direct cell search
+      let entry = Object.values(matrixData.cells).find((c) => c.kanji === char);
+      if (!entry) {
+        // 2. Check if placements are mapped
+        const placements = matrixData.kanji_index[char]?.placements;
+        if (placements && placements.length > 0) {
+          const key = `${placements[0].row_id}::${placements[0].col_id}`;
+          entry = matrixData.cells[key];
+        }
+      }
+      // 3. Fallback: synthesize entry from kanji_index if known
+      if (!entry && matrixData.kanji_index[char]) {
+        const kinfo = matrixData.kanji_index[char];
+        entry = {
+          kanji: char,
+          row_id: 'none:∅',
+          col_id: char,
+          primary_onyomi: '',
+          gojuon_row: 'kun_only',
+          is_voiced: false,
+          grade: 0,
+          is_joyo: false,
+          jlpt: null,
+          frequency: null,
+          strokes: kinfo.decomposition_tree?.strokes || 0,
+          radical: kinfo.radical,
+          radical_name: kinfo.radical_name,
+          old_form: kinfo.old_form,
+          new_form: kinfo.new_form,
+          meanings: [],
+          all_onyomi: [],
+          all_kunyomi: [],
+          has_own_column: false,
+          is_base_component: true,
+        };
+      }
+      if (entry) {
+        setSelectedKanji(entry);
+      }
+    },
+    [matrixData]
+  );
 
   // Get focused row/col info for banner
   const focusedRowInfo = useMemo(() => {

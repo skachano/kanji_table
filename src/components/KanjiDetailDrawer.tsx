@@ -3,7 +3,7 @@ import { KanjiCell, KanjiMatrixData } from '../types/kanji';
 import { getGojuonTheme } from '../utils/gojuonColors';
 import { RadicalLogogram, POSITION_CATEGORY_NAMES } from './RadicalLogogram';
 import { DecompositionTreeView } from './DecompositionTreeView';
-import { X, GitFork, BookOpen, Layers, ListTree, Filter } from 'lucide-react';
+import { X, GitFork, BookOpen, Layers, ListTree, Filter, ArrowRight } from 'lucide-react';
 
 interface KanjiDetailDrawerProps {
   cell: KanjiCell | null;
@@ -105,6 +105,66 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
             <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
               {cell.meanings.join(', ')}
             </p>
+
+            {/* Old Form (Kyūjitai) / New Form / Variant Links */}
+            {(cell.old_form || cell.new_form || (cell.variants && cell.variants.length > 0)) && (
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                {cell.old_form && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80">
+                    <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
+                      旧字体:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onSelectKanjiChar(cell.old_form!)}
+                      className="font-kanji font-bold text-base text-indigo-900 dark:text-indigo-100 hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                      title={`旧字体「${cell.old_form}」の詳細を表示`}
+                    >
+                      <span>{cell.old_form}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-indigo-500" />
+                    </button>
+                  </div>
+                )}
+
+                {cell.new_form && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80">
+                    <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
+                      新字体:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onSelectKanjiChar(cell.new_form!)}
+                      className="font-kanji font-bold text-base text-indigo-900 dark:text-indigo-100 hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                      title={`新字体「${cell.new_form}」の詳細を表示`}
+                    >
+                      <span>{cell.new_form}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-indigo-500" />
+                    </button>
+                  </div>
+                )}
+
+                {cell.variants && cell.variants.length > 0 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      異体字:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {cell.variants.map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => onSelectKanjiChar(v)}
+                          className="font-kanji font-bold text-sm hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                          title={`異体字「${v}」の詳細を表示`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
