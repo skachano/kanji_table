@@ -367,19 +367,19 @@ export const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 dark:bg-slate-950">
       {/* Top Navigation Bar */}
-      <header className="h-14 shrink-0 px-5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm z-30">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-kanji font-bold text-lg shadow-sm">
+      <header className="h-12 sm:h-14 shrink-0 px-3 sm:px-5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm z-30">
+        <div className="flex items-center space-x-2.5 sm:space-x-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-kanji font-bold text-base sm:text-lg shadow-sm shrink-0">
             構
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight flex items-center gap-2">
+            <h1 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-tight flex items-center gap-1.5 sm:gap-2">
               漢字2D構造表
               <span className="text-xs font-normal text-slate-500 dark:text-slate-400 hidden sm:inline">
                 Kanji 2D Structural Matrix
               </span>
             </h1>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-none">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-none hidden sm:block">
               行＝部首・配置（偏・旁・冠・脚） × 列＝残りの部品（音符）
             </p>
           </div>
@@ -695,7 +695,7 @@ export const App: React.FC = () => {
       )}
 
       {/* 2D Virtualized Matrix Container */}
-      <main className="flex-1 overflow-hidden p-3 min-h-0">
+      <main className="flex-1 overflow-hidden p-1 sm:p-3 min-h-0">
         <KanjiMatrix
           rows={activeRows}
           columns={activeColumns}

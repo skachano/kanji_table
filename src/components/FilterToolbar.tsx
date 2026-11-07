@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FilterState, GojuonRowId, GojuonRowInfo, PositionType } from '../types/kanji';
 import { GOJUON_THEMES } from '../utils/gojuonColors';
-import { Search, X, Sparkles, LayoutGrid, Filter } from 'lucide-react';
+import { Search, X, Sparkles, LayoutGrid, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 
 const RADICAL_POSITIONS: { id: PositionType | 'all'; label: string; desc: string }[] = [
   { id: 'all', label: 'すべて', desc: '全配置' },
@@ -36,6 +36,9 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
   activeRowsCount,
   onOpenOkuriganaModal,
 }) => {
+  const [isRadicalExpanded, setIsRadicalExpanded] = useState(false);
+  const [isGojuonExpanded, setIsGojuonExpanded] = useState(false);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     onFilterChange((prev) => ({ ...prev, searchQuery: val }));
@@ -52,12 +55,22 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
     }));
   };
 
+  const activePositionLabel =
+    filter.positionFilter !== 'all'
+      ? RADICAL_POSITIONS.find((p) => p.id === filter.positionFilter)?.label.split(' ')[0]
+      : null;
+
+  const activeGojuonRow =
+    filter.gojuonFilter !== 'all'
+      ? gojuonRows.find((r) => r.id === filter.gojuonFilter)
+      : null;
+
   return (
-    <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 space-y-3.5 shadow-sm">
+    <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-2.5 sm:p-4 space-y-2 sm:space-y-3 shadow-sm">
       {/* Top row: Search and primary dropdowns */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
         {/* Search input and Okurigana button */}
-        <div className="flex items-center gap-2 flex-1 min-w-[280px] max-w-lg">
+        <div className="flex items-center gap-2 flex-1 min-w-[200px] sm:min-w-[280px] max-w-lg">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -65,7 +78,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
               value={filter.searchQuery}
               onChange={handleSearchChange}
               placeholder="漢字・読み・意味を検索 (例: 連, ren, 車, lotus)..."
-              className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full pl-9 pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
             />
             {filter.searchQuery && (
               <button
@@ -83,7 +96,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenOkuriganaModal}
-                className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 cursor-pointer"
+                className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1.5 sm:py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 cursor-pointer"
                 title="送り仮名フィルターを変更"
               >
                 <Filter className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
@@ -105,7 +118,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             <button
               type="button"
               onClick={onOpenOkuriganaModal}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 transition-all shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold rounded-lg border bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 transition-all shrink-0 cursor-pointer"
               title="送り仮名フィルターを開く"
             >
               <Filter className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
@@ -153,7 +166,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             <option value="N1">JLPT N1 (上級)</option>
           </select>
 
-          {/* Position (偏・旁・冠・脚 etc.) Filter dropdown */}
+          {/* Position Filter dropdown (visible on larger screens, mobile uses expandable button below) */}
           <select
             value={filter.positionFilter}
             onChange={(e) =>
@@ -162,7 +175,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
                 positionFilter: e.target.value as FilterState['positionFilter'],
               }))
             }
-            className="px-2.5 py-1.5 text-xs font-medium bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="hidden sm:inline-block px-2.5 py-1.5 text-xs font-medium bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {RADICAL_POSITIONS.map((pos) => (
               <option key={pos.id} value={pos.id}>
@@ -186,11 +199,79 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
         </div>
       </div>
 
-      {/* Middle row: Radical Position (偏・旁・冠・脚 etc.) Pill Bar */}
+      {/* Expandable filter toggles & Stats bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {/* Radical Position toggle */}
+          <button
+            type="button"
+            onClick={() => setIsRadicalExpanded((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
+              isRadicalExpanded || filter.positionFilter !== 'all'
+                ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 font-semibold'
+                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/60'
+            }`}
+            aria-expanded={isRadicalExpanded}
+            title="部首配置フィルターを展開/折りたたみ"
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span>部首配置</span>
+            {activePositionLabel && (
+              <span className="px-1.5 py-0.2 text-[10px] font-bold rounded bg-indigo-600 text-white shrink-0">
+                {activePositionLabel}
+              </span>
+            )}
+            {isRadicalExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5 ml-0.5 opacity-70 shrink-0" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-70 shrink-0" />
+            )}
+          </button>
+
+          {/* Gojuon toggle */}
+          <button
+            type="button"
+            onClick={() => setIsGojuonExpanded((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
+              isGojuonExpanded || filter.gojuonFilter !== 'all'
+                ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-semibold'
+                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/60'
+            }`}
+            aria-expanded={isGojuonExpanded}
+            title="音読み50音行フィルターを展開/折りたたみ"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span>音読み50音行</span>
+            {activeGojuonRow && (
+              <span
+                className="px-1.5 py-0.2 text-[10px] font-bold rounded text-white shrink-0"
+                style={{ backgroundColor: GOJUON_THEMES[filter.gojuonFilter]?.accentColor || '#f59e0b' }}
+              >
+                {activeGojuonRow.label.split(' ')[0]}
+              </span>
+            )}
+            {isGojuonExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5 ml-0.5 opacity-70 shrink-0" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-70 shrink-0" />
+            )}
+          </button>
+        </div>
+
+        {/* Counter Stats */}
+        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          表示: <span className="font-bold text-slate-800 dark:text-slate-200">{filteredKanjiCount}</span> / {totalKanjiCount}字
+          <span className="ml-1.5 text-slate-400 dark:text-slate-600">
+            ({activeColumnsCount}列 · {activeRowsCount}行)
+          </span>
+        </div>
+      </div>
+
+      {/* Expandable Radical Position Pill Bar */}
+      {isRadicalExpanded && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 shrink-0">
-            <LayoutGrid className="w-3.5 h-3.5 text-indigo-500" />
+            <LayoutGrid className="w-3 h-3 text-indigo-500" />
             部首配置 (行):
           </span>
           <div className="flex flex-wrap gap-1">
@@ -207,7 +288,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
                     }))
                   }
                   className={`
-                    px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all border
+                    px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all border cursor-pointer
                     ${
                       isSelected
                         ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-2xs ring-2 ring-indigo-400/40'
@@ -225,20 +306,20 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange((prev) => ({ ...prev, positionFilter: 'all' }))}
-                className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300"
+                className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 cursor-pointer"
               >
                 解除
               </button>
             )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Bottom row: Gojūon Color Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
-        <div className="flex items-center space-x-2">
-          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+      {/* Expandable Gojūon Color Legend Bar */}
+      {isGojuonExpanded && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 shrink-0">
+            <Sparkles className="w-3 h-3 text-amber-500" />
             音読み50音行:
           </span>
           <div className="flex flex-wrap gap-1">
@@ -252,7 +333,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
                   type="button"
                   onClick={() => handleGojuonToggle(row.id)}
                   className={`
-                    px-2 py-0.5 rounded-full text-[11px] font-medium transition-all
+                    px-2 py-0.5 rounded-full text-[11px] font-medium transition-all cursor-pointer
                     flex items-center space-x-1 border
                     ${theme.badgeBg} ${theme.badgeText}
                     ${
@@ -275,22 +356,14 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange((prev) => ({ ...prev, gojuonFilter: 'all' }))}
-                className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300"
+                className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 cursor-pointer"
               >
                 解除
               </button>
             )}
           </div>
         </div>
-
-        {/* Counter Stats */}
-        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-          表示: <span className="font-bold text-slate-800 dark:text-slate-200">{filteredKanjiCount}</span> / {totalKanjiCount}字
-          <span className="ml-2 text-slate-400 dark:text-slate-600">
-            ({activeColumnsCount}列 · {activeRowsCount}行)
-          </span>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
