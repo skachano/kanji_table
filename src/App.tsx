@@ -76,49 +76,44 @@ export const App: React.FC = () => {
     setFocusedColId(null);
   }, []);
 
-  // Update filter with auto-clear of row focus if position filter changes
+  // Update filter; keep row/column selection unless a specific position filter excludes the focused row
   const handleFilterChange = useCallback((updater: (prev: FilterState) => FilterState) => {
     setFilter((prev) => {
       const next = updater(prev);
-      if (next.positionFilter !== prev.positionFilter) {
-        setFocusedRowId(null);
+      if (next.positionFilter !== 'all' && next.positionFilter !== prev.positionFilter) {
+        setFocusedRowId((currentRowId) => {
+          if (!currentRowId) return null;
+          const pos = currentRowId.split(':')[0];
+          return pos === next.positionFilter ? currentRowId : null;
+        });
       }
       return next;
     });
   }, []);
 
-  // Toggle component filter from decomposition tree
+  // Toggle component filter from decomposition tree (preserves row/column selection)
   const handleToggleComponentFilter = useCallback((component: string) => {
     setFilter((prev) => ({
       ...prev,
       componentFilter: prev.componentFilter === component ? null : component,
     }));
-    // Clear any focus so the user sees all matching kanji across the matrix
-    setFocusedRowId(null);
-    setFocusedColId(null);
   }, []);
 
-  // Toggle reading filter from kanji info drawer
+  // Toggle reading filter from kanji info drawer (preserves row/column selection)
   const handleToggleReadingFilter = useCallback((reading: string) => {
     const cleaned = cleanReading(reading);
     setFilter((prev) => ({
       ...prev,
       readingFilter: prev.readingFilter === cleaned ? null : cleaned,
     }));
-    // Clear any focus so the user sees all matching kanji across the matrix
-    setFocusedRowId(null);
-    setFocusedColId(null);
   }, []);
 
-  // Apply okurigana filter from modal window
+  // Apply okurigana filter from modal window (preserves row/column selection)
   const handleApplyOkuriganaFilter = useCallback((pattern: string | null) => {
     setFilter((prev) => ({
       ...prev,
       okuriganaFilter: pattern,
     }));
-    // Clear any focus so the user sees all matching kanji across the matrix
-    setFocusedRowId(null);
-    setFocusedColId(null);
   }, []);
 
   // Filter matching cells and compute active columns/rows
@@ -455,6 +450,7 @@ export const App: React.FC = () => {
                       gradeFilter: 'all',
                       jlptFilter: 'all',
                       gojuonFilter: 'all',
+                      positionFilter: 'all',
                       componentFilter: null,
                       readingFilter: null,
                       okuriganaFilter: null,
@@ -476,6 +472,7 @@ export const App: React.FC = () => {
                       gradeFilter: 'all',
                       jlptFilter: 'all',
                       gojuonFilter: 'all',
+                      positionFilter: 'all',
                       componentFilter: null,
                       readingFilter: null,
                       okuriganaFilter: null,
