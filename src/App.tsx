@@ -5,6 +5,7 @@ import { FilterToolbar } from './components/FilterToolbar';
 import { KanjiMatrix } from './components/KanjiMatrix';
 import { KanjiDetailDrawer } from './components/KanjiDetailDrawer';
 import { RadicalLogogram } from './components/RadicalLogogram';
+import { OkuriganaModal } from './components/OkuriganaModal';
 import { Moon, Sun, RotateCcw, X, Focus, ArrowLeftRight } from 'lucide-react';
 import {
   getCounterpartsForColumn,
@@ -14,6 +15,7 @@ import {
 import {
   cleanReading,
   kanjiMatchesReading,
+  kanjiMatchesOkurigana,
   normalizeReading,
   toHiragana,
 } from './utils/reading';
@@ -30,6 +32,7 @@ const INITIAL_FILTER: FilterState = {
   positionFilter: 'all',
   componentFilter: null,
   readingFilter: null,
+  okuriganaFilter: null,
 };
 
 export const App: React.FC = () => {
@@ -39,6 +42,7 @@ export const App: React.FC = () => {
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   const [focusedColId, setFocusedColId] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isOkuriganaModalOpen, setIsOkuriganaModalOpen] = useState<boolean>(false);
 
   // Toggle dark mode class on document
   const toggleDarkMode = () => {
@@ -106,6 +110,17 @@ export const App: React.FC = () => {
     setFocusedColId(null);
   }, []);
 
+  // Apply okurigana filter from modal window
+  const handleApplyOkuriganaFilter = useCallback((pattern: string | null) => {
+    setFilter((prev) => ({
+      ...prev,
+      okuriganaFilter: pattern,
+    }));
+    // Clear any focus so the user sees all matching kanji across the matrix
+    setFocusedRowId(null);
+    setFocusedColId(null);
+  }, []);
+
   // Filter matching cells and compute active columns/rows
   const { filteredCells, activeColumns, activeRows, matchingKanjiCount } = useMemo(() => {
     const q = filter.searchQuery.trim().toLowerCase();
@@ -155,7 +170,14 @@ export const App: React.FC = () => {
         }
       }
 
-      // 7. Search query
+      // 7. Okurigana filter (filter by okurigana pattern)
+      if (filter.okuriganaFilter) {
+        if (!kanjiMatchesOkurigana(cell.all_kunyomi, filter.okuriganaFilter)) {
+          continue;
+        }
+      }
+
+      // 8. Search query
       if (q) {
         const hiraQ = toHiragana(q);
         const matchesKanji = cell.kanji.includes(q);
@@ -265,6 +287,7 @@ export const App: React.FC = () => {
       filter.positionFilter !== 'all' ||
       filter.componentFilter !== null ||
       filter.readingFilter !== null ||
+      filter.okuriganaFilter !== null ||
       focusedRowId !== null ||
       focusedColId !== null
     );
@@ -400,6 +423,7 @@ export const App: React.FC = () => {
         filteredKanjiCount={matchingKanjiCount}
         activeColumnsCount={activeColumns.length}
         activeRowsCount={activeRows.length}
+        onOpenOkuriganaModal={() => setIsOkuriganaModalOpen(true)}
       />
 
       {/* Active Focus Pill / Notification Banner */}
@@ -440,6 +464,7 @@ export const App: React.FC = () => {
                       gojuonFilter: 'all',
                       componentFilter: null,
                       readingFilter: null,
+                      okuriganaFilter: null,
                       searchQuery: '',
                     }));
                   }}
@@ -460,6 +485,7 @@ export const App: React.FC = () => {
                       gojuonFilter: 'all',
                       componentFilter: null,
                       readingFilter: null,
+                      okuriganaFilter: null,
                       searchQuery: '',
                     }));
                   }}
@@ -651,6 +677,30 @@ export const App: React.FC = () => {
         </div>
       )}
 
+      {/* Active Okurigana Filter Banner */}
+      {filter.okuriganaFilter && (
+        <div className="shrink-0 px-4 py-2 bg-rose-50 dark:bg-rose-950/60 border-b border-rose-200 dark:border-rose-800/80 flex items-center justify-between gap-2 z-20">
+          <div className="flex items-center space-x-2 text-xs text-rose-900 dark:text-rose-200">
+            <span className="font-semibold">
+              送り仮名フィルター: 「〜{filter.okuriganaFilter}」を持つ漢字
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200 font-bold text-[11px]">
+              {matchingKanjiCount}字
+            </span>
+            <span className="text-rose-700 dark:text-rose-400 text-[11px]">
+              ({activeColumns.length}列 · {activeRows.length}行)
+            </span>
+          </div>
+          <button
+            onClick={() => handleApplyOkuriganaFilter(null)}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-800 dark:text-rose-200 font-medium text-xs shadow-2xs transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>フィルター解除</span>
+          </button>
+        </div>
+      )}
+
       {/* 2D Virtualized Matrix Container */}
       <main className="flex-1 overflow-hidden p-3 min-h-0">
         <KanjiMatrix
@@ -681,6 +731,15 @@ export const App: React.FC = () => {
         onClose={() => setSelectedKanji(null)}
         onSelectKanjiChar={handleSelectKanjiChar}
         onFilterByColumn={handleFilterByColumn}
+      />
+
+      {/* Okurigana Pattern Selection Modal Window */}
+      <OkuriganaModal
+        isOpen={isOkuriganaModalOpen}
+        selectedPattern={filter.okuriganaFilter}
+        matrixData={matrixData}
+        onApply={handleApplyOkuriganaFilter}
+        onClose={() => setIsOkuriganaModalOpen(false)}
       />
     </div>
   );

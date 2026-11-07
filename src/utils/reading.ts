@@ -1,5 +1,5 @@
 /**
- * Utility functions for Japanese kanji readings (音読み / 訓読み)
+ * Utility functions for Japanese kanji readings (音読み / 訓読み) and 送り仮名 (okurigana)
  */
 
 /**
@@ -59,4 +59,34 @@ export function kanjiMatchesReading(
     allOnyomi.some((on) => normalizeReading(on) === targetNorm) ||
     allKunyomi.some((kun) => normalizeReading(kun) === targetNorm)
   );
+}
+
+/**
+ * Extracts okurigana pattern from a single kunyomi string.
+ * Returns null if no okurigana is marked by a dot.
+ * e.g. "つ.く" -> "く", "-づ.く" -> "く", "つく.る" -> "る", "うつく.しい" -> "しい", "つく" -> null
+ */
+export function extractOkurigana(kunyomi: string): string | null {
+  if (!kunyomi) return null;
+  const dotIndex = kunyomi.indexOf('.');
+  if (dotIndex === -1) return null;
+  const okuri = kunyomi.slice(dotIndex + 1).replace(/^-+|-+$/g, '').trim();
+  return okuri || null;
+}
+
+/**
+ * Checks whether any of the cell's kunyomi entries match the target okurigana pattern.
+ */
+export function kanjiMatchesOkurigana(
+  allKunyomi: string[] = [],
+  targetOkurigana: string
+): boolean {
+  if (!targetOkurigana) return true;
+  const targetNorm = targetOkurigana.replace(/\./g, '').replace(/^-+|-+$/g, '').trim();
+  if (!targetNorm) return true;
+
+  return allKunyomi.some((kun) => {
+    const okuri = extractOkurigana(kun);
+    return okuri === targetNorm;
+  });
 }

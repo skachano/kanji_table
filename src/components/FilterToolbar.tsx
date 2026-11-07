@@ -1,7 +1,7 @@
 import React from 'react';
 import { FilterState, GojuonRowId, GojuonRowInfo, PositionType } from '../types/kanji';
 import { GOJUON_THEMES } from '../utils/gojuonColors';
-import { Search, X, Sparkles, LayoutGrid } from 'lucide-react';
+import { Search, X, Sparkles, LayoutGrid, Filter } from 'lucide-react';
 
 const RADICAL_POSITIONS: { id: PositionType | 'all'; label: string; desc: string }[] = [
   { id: 'all', label: 'すべて', desc: '全配置' },
@@ -23,6 +23,7 @@ interface FilterToolbarProps {
   filteredKanjiCount: number;
   activeColumnsCount: number;
   activeRowsCount: number;
+  onOpenOkuriganaModal?: () => void;
 }
 
 export const FilterToolbar: React.FC<FilterToolbarProps> = ({
@@ -33,6 +34,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
   filteredKanjiCount,
   activeColumnsCount,
   activeRowsCount,
+  onOpenOkuriganaModal,
 }) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -54,22 +56,60 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
     <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 space-y-3.5 shadow-sm">
       {/* Top row: Search and primary dropdowns */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Search input */}
-        <div className="relative flex-1 min-w-[260px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            value={filter.searchQuery}
-            onChange={handleSearchChange}
-            placeholder="漢字・読み・意味を検索 (例: 連, ren, 車, lotus)..."
-            className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-          />
-          {filter.searchQuery && (
+        {/* Search input and Okurigana button */}
+        <div className="flex items-center gap-2 flex-1 min-w-[280px] max-w-lg">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={filter.searchQuery}
+              onChange={handleSearchChange}
+              placeholder="漢字・読み・意味を検索 (例: 連, ren, 車, lotus)..."
+              className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            />
+            {filter.searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Okurigana filter button */}
+          {filter.okuriganaFilter ? (
+            <div className="inline-flex items-center rounded-lg border border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/70 shadow-xs ring-2 ring-rose-400/40 shrink-0">
+              <button
+                type="button"
+                onClick={onOpenOkuriganaModal}
+                className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 cursor-pointer"
+                title="送り仮名フィルターを変更"
+              >
+                <Filter className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                <span>送り仮名: 〜{filter.okuriganaFilter}</span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFilterChange((prev) => ({ ...prev, okuriganaFilter: null }));
+                }}
+                className="p-1 mr-1 rounded hover:bg-rose-200 dark:hover:bg-rose-900/80 text-rose-600 dark:text-rose-400 cursor-pointer"
+                title="送り仮名フィルターを解除"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={handleClearSearch}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              type="button"
+              onClick={onOpenOkuriganaModal}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 transition-all shrink-0 cursor-pointer"
+              title="送り仮名フィルターを開く"
             >
-              <X className="w-3.5 h-3.5" />
+              <Filter className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+              <span>送り仮名</span>
             </button>
           )}
         </div>

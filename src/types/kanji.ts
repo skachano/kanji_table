@@ -132,4 +132,5 @@ export interface FilterState {
   positionFilter: PositionType | 'all';
   componentFilter: string | null;
   readingFilter: string | null;
+  okuriganaFilter: string | null;
 }
