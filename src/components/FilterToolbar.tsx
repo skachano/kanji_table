@@ -169,24 +169,6 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             <option value="N1">JLPT N1 (上級)</option>
           </select>
 
-          {/* Position Filter dropdown (visible on larger screens, mobile uses expandable button below) */}
-          <select
-            value={filter.positionFilter}
-            onChange={(e) =>
-              onFilterChange((prev) => ({
-                ...prev,
-                positionFilter: e.target.value as FilterState['positionFilter'],
-              }))
-            }
-            className="hidden sm:inline-block px-2.5 py-1.5 text-xs font-medium bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {RADICAL_POSITIONS.map((pos) => (
-              <option key={pos.id} value={pos.id}>
-                部首配置: {pos.label}
-              </option>
-            ))}
-          </select>
-
           {/* Hide empty rows/cols toggles */}
           <label className="flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none">
             <input
