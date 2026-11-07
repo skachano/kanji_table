@@ -7,8 +7,33 @@ data/raw/
 # Node / dependencies
 node_modules/
 dist/
+dist-ssr/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Editor & IDE directories
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS / Python artifacts
 __pycache__/
 *.py[cod]
+*$py.class
 .DS_Store
+Thumbs.db
