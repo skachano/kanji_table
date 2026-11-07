@@ -222,13 +222,6 @@ export const App: React.FC = () => {
       if (filter.positionFilter !== 'all' && row.position !== filter.positionFilter) {
         return false;
       }
-      // Row 0 (none:∅) is kept if positionFilter is 'all' or 'none', and not filtering by a focused row
-      if (row.position === 'none' && !focusedRowId) {
-        if (filter.positionFilter !== 'all' && filter.positionFilter !== 'none') {
-          return false;
-        }
-        return true;
-      }
       if (filter.hideEmptyRows && !rowsWithKanji.has(row.id)) return false;
       return true;
     });
