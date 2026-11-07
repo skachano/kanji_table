@@ -131,4 +131,5 @@ export interface FilterState {
   hideEmptyCols: boolean;
   positionFilter: PositionType | 'all';
   componentFilter: string | null;
+  readingFilter: string | null;
 }

@@ -11,6 +11,12 @@ import {
   getCounterpartsForRow,
   POSITION_SHORT_NAMES,
 } from './utils/counterparts';
+import {
+  cleanReading,
+  kanjiMatchesReading,
+  normalizeReading,
+  toHiragana,
+} from './utils/reading';
 
 const matrixData = matrixDataRaw as unknown as KanjiMatrixData;
 
@@ -23,6 +29,7 @@ const INITIAL_FILTER: FilterState = {
   hideEmptyCols: true,
   positionFilter: 'all',
   componentFilter: null,
+  readingFilter: null,
 };
 
 export const App: React.FC = () => {
@@ -87,6 +94,18 @@ export const App: React.FC = () => {
     setFocusedColId(null);
   }, []);
 
+  // Toggle reading filter from kanji info drawer
+  const handleToggleReadingFilter = useCallback((reading: string) => {
+    const cleaned = cleanReading(reading);
+    setFilter((prev) => ({
+      ...prev,
+      readingFilter: prev.readingFilter === cleaned ? null : cleaned,
+    }));
+    // Clear any focus so the user sees all matching kanji across the matrix
+    setFocusedRowId(null);
+    setFocusedColId(null);
+  }, []);
+
   // Filter matching cells and compute active columns/rows
   const { filteredCells, activeColumns, activeRows, matchingKanjiCount } = useMemo(() => {
     const q = filter.searchQuery.trim().toLowerCase();
@@ -129,11 +148,23 @@ export const App: React.FC = () => {
         }
       }
 
-      // 6. Search query
+      // 6. Reading filter (filter by reading from kanji info)
+      if (filter.readingFilter) {
+        if (!kanjiMatchesReading(cell.all_onyomi, cell.all_kunyomi, filter.readingFilter)) {
+          continue;
+        }
+      }
+
+      // 7. Search query
       if (q) {
+        const hiraQ = toHiragana(q);
         const matchesKanji = cell.kanji.includes(q);
-        const matchesOn = cell.all_onyomi.some((on) => on.toLowerCase().includes(q));
-        const matchesKun = cell.all_kunyomi.some((kun) => kun.toLowerCase().includes(q));
+        const matchesOn = cell.all_onyomi.some(
+          (on) => on.toLowerCase().includes(q) || normalizeReading(on).includes(hiraQ)
+        );
+        const matchesKun = cell.all_kunyomi.some(
+          (kun) => kun.toLowerCase().includes(q) || normalizeReading(kun).includes(hiraQ)
+        );
         const matchesMeaning = cell.meanings.some((m) => m.toLowerCase().includes(q));
         const matchesCol = cell.col_id.toLowerCase().includes(q);
         if (!matchesKanji && !matchesOn && !matchesKun && !matchesMeaning && !matchesCol) {
@@ -231,6 +262,9 @@ export const App: React.FC = () => {
       filter.gradeFilter !== 'all' ||
       filter.jlptFilter !== 'all' ||
       filter.gojuonFilter !== 'all' ||
+      filter.positionFilter !== 'all' ||
+      filter.componentFilter !== null ||
+      filter.readingFilter !== null ||
       focusedRowId !== null ||
       focusedColId !== null
     );
@@ -404,6 +438,8 @@ export const App: React.FC = () => {
                       gradeFilter: 'all',
                       jlptFilter: 'all',
                       gojuonFilter: 'all',
+                      componentFilter: null,
+                      readingFilter: null,
                       searchQuery: '',
                     }));
                   }}
@@ -422,6 +458,8 @@ export const App: React.FC = () => {
                       gradeFilter: 'all',
                       jlptFilter: 'all',
                       gojuonFilter: 'all',
+                      componentFilter: null,
+                      readingFilter: null,
                       searchQuery: '',
                     }));
                   }}
@@ -589,6 +627,30 @@ export const App: React.FC = () => {
         </div>
       )}
 
+      {/* Active Reading Filter Banner */}
+      {filter.readingFilter && (
+        <div className="shrink-0 px-4 py-2 bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-800/80 flex items-center justify-between gap-2 z-20">
+          <div className="flex items-center space-x-2 text-xs text-amber-900 dark:text-amber-200">
+            <span className="font-semibold">
+              読みフィルター: 「{filter.readingFilter}」と読む漢字
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold text-[11px]">
+              {matchingKanjiCount}字
+            </span>
+            <span className="text-amber-700 dark:text-amber-400 text-[11px]">
+              ({activeColumns.length}列 · {activeRows.length}行)
+            </span>
+          </div>
+          <button
+            onClick={() => handleToggleReadingFilter(filter.readingFilter!)}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 font-medium text-xs shadow-2xs transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>フィルター解除</span>
+          </button>
+        </div>
+      )}
+
       {/* 2D Virtualized Matrix Container */}
       <main className="flex-1 overflow-hidden p-3 min-h-0">
         <KanjiMatrix
@@ -612,8 +674,10 @@ export const App: React.FC = () => {
         cell={selectedKanji}
         matrixData={matrixData}
         activeComponentFilter={filter.componentFilter}
+        activeReadingFilter={filter.readingFilter}
         focusedColId={focusedColId}
         onFilterByComponent={handleToggleComponentFilter}
+        onFilterByReading={handleToggleReadingFilter}
         onClose={() => setSelectedKanji(null)}
         onSelectKanjiChar={handleSelectKanjiChar}
         onFilterByColumn={handleFilterByColumn}

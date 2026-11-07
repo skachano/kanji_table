@@ -1,6 +1,7 @@
 import React from 'react';
 import { KanjiCell, KanjiMatrixData } from '../types/kanji';
 import { getGojuonTheme } from '../utils/gojuonColors';
+import { cleanReading, matchesReading } from '../utils/reading';
 import { RadicalLogogram, POSITION_CATEGORY_NAMES } from './RadicalLogogram';
 import { DecompositionTreeView } from './DecompositionTreeView';
 import { X, GitFork, BookOpen, Layers, ListTree, Filter, ArrowRight } from 'lucide-react';
@@ -9,8 +10,10 @@ interface KanjiDetailDrawerProps {
   cell: KanjiCell | null;
   matrixData: KanjiMatrixData;
   activeComponentFilter?: string | null;
+  activeReadingFilter?: string | null;
   focusedColId?: string | null;
   onFilterByComponent?: (component: string) => void;
+  onFilterByReading?: (reading: string) => void;
   onFilterByColumn: (colId: string) => void;
   onClose: () => void;
   onSelectKanjiChar: (char: string) => void;
@@ -20,8 +23,10 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
   cell,
   matrixData,
   activeComponentFilter,
+  activeReadingFilter,
   focusedColId,
   onFilterByComponent,
+  onFilterByReading,
   onFilterByColumn,
   onClose,
   onSelectKanjiChar,
@@ -171,25 +176,63 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
         {/* Readings */}
         <div className="space-y-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
           <div className="flex items-start space-x-3">
-            <span className="w-12 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">
+            <span className="w-12 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 mt-1">
               音読み
             </span>
             <div className="flex flex-wrap gap-1.5">
               {cell.all_onyomi.length > 0 ? (
                 cell.all_onyomi.map((on) => {
                   const isPrimary = on === cell.primary_onyomi;
+                  const isMatch = Boolean(activeReadingFilter && matchesReading(on, activeReadingFilter));
+                  const displayReading = cleanReading(on);
                   return (
-                    <span
+                    <div
                       key={on}
-                      className={`px-2 py-0.5 rounded text-xs font-mono ${
-                        isPrimary
-                          ? `${theme.badgeBg} ${theme.badgeText} font-bold ring-1 ring-inset`
-                          : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                      className={`group inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded text-xs font-mono transition-all border ${
+                        isMatch
+                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-100 border-amber-400 dark:border-amber-600 font-bold ring-2 ring-amber-400/50 shadow-xs'
+                          : isPrimary
+                          ? `${theme.badgeBg} ${theme.badgeText} font-bold ring-1 ring-inset border-transparent hover:border-amber-300 dark:hover:border-amber-700`
+                          : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-700'
                       }`}
                     >
-                      {on}
-                      {isPrimary && ' ★'}
-                    </span>
+                      <button
+                        type="button"
+                        onClick={() => onFilterByReading?.(on)}
+                        className="cursor-pointer hover:underline flex items-center gap-1"
+                        title={
+                          isMatch
+                            ? `「${displayReading}」フィルターを解除`
+                            : `「${displayReading}」で表を絞り込む`
+                        }
+                      >
+                        <span>{on}</span>
+                        {isPrimary && !isMatch && <span className="text-[10px] text-amber-600 dark:text-amber-400">★</span>}
+                      </button>
+
+                      {onFilterByReading && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onFilterByReading(on);
+                          }}
+                          className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                            isMatch
+                              ? 'bg-amber-600 text-white font-bold hover:bg-amber-700 shadow-2xs'
+                              : 'text-slate-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 border border-slate-200 dark:border-slate-600 hover:border-amber-300'
+                          }`}
+                          title={
+                            isMatch
+                              ? `「${displayReading}」フィルターを解除`
+                              : `「${displayReading}」で表を絞り込む`
+                          }
+                        >
+                          <Filter className="w-2.5 h-2.5" />
+                          <span>{isMatch ? '絞込中' : '絞込'}</span>
+                        </button>
+                      )}
+                    </div>
                   );
                 })
               ) : (
@@ -199,19 +242,61 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
           </div>
 
           <div className="flex items-start space-x-3 pt-2 border-t border-slate-200 dark:border-slate-700/60">
-            <span className="w-12 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">
+            <span className="w-12 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 mt-1">
               訓読み
             </span>
             <div className="flex flex-wrap gap-1.5">
               {cell.all_kunyomi.length > 0 ? (
-                cell.all_kunyomi.map((kun) => (
-                  <span
-                    key={kun}
-                    className="px-2 py-0.5 rounded bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-mono"
-                  >
-                    {kun}
-                  </span>
-                ))
+                cell.all_kunyomi.map((kun) => {
+                  const isMatch = Boolean(activeReadingFilter && matchesReading(kun, activeReadingFilter));
+                  const displayReading = cleanReading(kun);
+                  return (
+                    <div
+                      key={kun}
+                      className={`group inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded text-xs font-mono transition-all border ${
+                        isMatch
+                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-100 border-amber-400 dark:border-amber-600 font-bold ring-2 ring-amber-400/50 shadow-xs'
+                          : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-700'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onFilterByReading?.(kun)}
+                        className="cursor-pointer hover:underline flex items-center gap-1"
+                        title={
+                          isMatch
+                            ? `「${displayReading}」フィルターを解除`
+                            : `「${displayReading}」で表を絞り込む`
+                        }
+                      >
+                        <span>{kun}</span>
+                      </button>
+
+                      {onFilterByReading && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onFilterByReading(kun);
+                          }}
+                          className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                            isMatch
+                              ? 'bg-amber-600 text-white font-bold hover:bg-amber-700 shadow-2xs'
+                              : 'text-slate-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 border border-slate-200 dark:border-slate-600 hover:border-amber-300'
+                          }`}
+                          title={
+                            isMatch
+                              ? `「${displayReading}」フィルターを解除`
+                              : `「${displayReading}」で表を絞り込む`
+                          }
+                        >
+                          <Filter className="w-2.5 h-2.5" />
+                          <span>{isMatch ? '絞込中' : '絞込'}</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
               ) : (
                 <span className="text-xs text-slate-400 italic">なし</span>
               )}
