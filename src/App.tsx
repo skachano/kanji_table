@@ -712,6 +712,7 @@ export const App: React.FC = () => {
           focusedRowId={focusedRowId}
           focusedColId={focusedColId}
           isAnyFilterActive={isAnyFilterActive}
+          okuriganaFilter={filter.okuriganaFilter}
           onSelectKanji={setSelectedKanji}
           onFilterByColumn={handleFilterByColumn}
           onToggleRowFocus={handleToggleRowFocus}

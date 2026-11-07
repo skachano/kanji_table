@@ -13,6 +13,7 @@ interface KanjiMatrixProps {
   focusedRowId: string | null;
   focusedColId: string | null;
   isAnyFilterActive?: boolean;
+  okuriganaFilter?: string | null;
   onSelectKanji: (cell: KanjiCell) => void;
   onFilterByColumn: (colId: string) => void;
   onToggleRowFocus: (rowId: string) => void;
@@ -33,6 +34,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
   focusedRowId,
   focusedColId,
   isAnyFilterActive = false,
+  okuriganaFilter,
   onSelectKanji,
   onFilterByColumn,
   onToggleRowFocus,
@@ -376,6 +378,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                     isSelected={isSelected}
                     isHighlighted={isHighlighted}
                     focusedColId={focusedColId}
+                    okuriganaFilter={okuriganaFilter}
                     onSelect={onSelectKanji}
                     onFilterByColumn={onFilterByColumn}
                   />

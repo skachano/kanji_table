@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { KanjiCell } from '../types/kanji';
 import { getGojuonTheme } from '../utils/gojuonColors';
+import { extractOkurigana } from '../utils/reading';
 
 interface KanjiCardProps {
   cell: KanjiCell;
   isSelected?: boolean;
   isHighlighted?: boolean;
   focusedColId?: string | null;
+  okuriganaFilter?: string | null;
   onSelect: (cell: KanjiCell) => void;
   onFilterByColumn?: (colId: string) => void;
 }
@@ -16,10 +18,27 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   isSelected,
   isHighlighted,
   focusedColId,
+  okuriganaFilter,
   onSelect,
   onFilterByColumn,
 }) => {
   const theme = getGojuonTheme(cell.gojuon_row);
+
+  const matchingOkuriganaReadings = useMemo(() => {
+    if (!okuriganaFilter) return [];
+    const matches: string[] = [];
+    const seen = new Set<string>();
+    for (const kun of cell.all_kunyomi) {
+      if (extractOkurigana(kun) === okuriganaFilter) {
+        const clean = kun.replace(/^-+|-+$/g, '');
+        if (!seen.has(clean)) {
+          seen.add(clean);
+          matches.push(clean);
+        }
+      }
+    }
+    return matches;
+  }, [cell.all_kunyomi, okuriganaFilter]);
 
   return (
     <div
@@ -62,8 +81,15 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           {cell.strokes}画
         </span>
 
-        {/* Has own column filter badge */}
-        {cell.has_own_column && !cell.is_base_component && onFilterByColumn ? (
+        {/* Matching okurigana reading(s) when okurigana filter is on */}
+        {matchingOkuriganaReadings.length > 0 ? (
+          <span
+            className="px-1 py-0.5 rounded font-mono text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50/90 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800/60 truncate max-w-[62px] text-right"
+            title={`送り仮名「〜${okuriganaFilter}」: ${matchingOkuriganaReadings.join(', ')}`}
+          >
+            {matchingOkuriganaReadings.join(', ')}
+          </span>
+        ) : cell.has_own_column && !cell.is_base_component && onFilterByColumn ? (
           <button
             type="button"
             onClick={(e) => {
