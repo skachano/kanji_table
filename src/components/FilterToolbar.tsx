@@ -65,6 +65,9 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
       ? gojuonRows.find((r) => r.id === filter.gojuonFilter)
       : null;
 
+  const activeGojuonTheme =
+    filter.gojuonFilter !== 'all' ? GOJUON_THEMES[filter.gojuonFilter] : null;
+
   return (
     <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-2.5 sm:p-4 space-y-2 sm:space-y-3 shadow-sm">
       {/* Top row: Search and primary dropdowns */}
@@ -245,7 +248,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
             {activeGojuonRow && (
               <span
                 className="px-1.5 py-0.2 text-[10px] font-bold rounded text-white shrink-0"
-                style={{ backgroundColor: GOJUON_THEMES[filter.gojuonFilter]?.accentColor || '#f59e0b' }}
+                style={{ backgroundColor: activeGojuonTheme?.accentColor || '#f59e0b' }}
               >
                 {activeGojuonRow.label.split(' ')[0]}
               </span>
