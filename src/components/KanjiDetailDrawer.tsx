@@ -31,6 +31,18 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
   onClose,
   onSelectKanjiChar,
 }) => {
+  // Listen for Escape key to close the drawer
+  React.useEffect(() => {
+    if (!cell) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cell, onClose]);
+
   if (!cell) return null;
 
   const theme = getGojuonTheme(cell.gojuon_row);
@@ -43,24 +55,41 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
     .map((c) => c.kanji);
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col transition-transform transform">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center space-x-2">
-          <span className="font-bold text-sm text-slate-700 dark:text-slate-300">
-            漢字詳細 (Kanji Details)
-          </span>
-          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${theme.badgeBg} ${theme.badgeText}`}>
-            {theme.label.split(' ')[0]}
-          </span>
+    <>
+      {/* Mobile Backdrop Overlay (< md) */}
+      <div
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside
+        className="
+          fixed inset-y-0 right-0 z-50 w-full sm:max-w-md
+          md:relative md:inset-auto md:z-auto md:w-80 lg:w-96 xl:w-[440px] md:max-w-none md:shrink-0 md:h-full
+          bg-white dark:bg-slate-900 shadow-2xl md:shadow-xs
+          border-l md:border border-slate-200 dark:border-slate-800 md:rounded-xl
+          flex flex-col overflow-hidden transition-all
+        "
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-sm text-slate-700 dark:text-slate-300">
+              漢字詳細 (Kanji Details)
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${theme.badgeBg} ${theme.badgeText}`}>
+              {theme.label.split(' ')[0]}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title="詳細を閉じる (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
@@ -464,6 +493,7 @@ export const KanjiDetailDrawer: React.FC<KanjiDetailDrawerProps> = ({
           </div>
         )}
       </div>
-    </div>
-  );
+    </aside>
+  </>
+);
 };

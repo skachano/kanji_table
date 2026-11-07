@@ -694,38 +694,41 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* 2D Virtualized Matrix Container */}
-      <main className="flex-1 overflow-hidden p-1 sm:p-3 min-h-0">
-        <KanjiMatrix
-          rows={activeRows}
-          columns={activeColumns}
-          cells={filteredCells}
-          selectedKanji={selectedKanji}
-          highlightedKanjiChar={highlightedKanjiChar}
-          focusedRowId={focusedRowId}
-          focusedColId={focusedColId}
-          isAnyFilterActive={isAnyFilterActive}
-          okuriganaFilter={filter.okuriganaFilter}
-          onSelectKanji={setSelectedKanji}
-          onFilterByColumn={handleFilterByColumn}
-          onToggleRowFocus={handleToggleRowFocus}
-          onToggleColFocus={handleToggleColFocus}
-        />
-      </main>
+      {/* Main Workspace: Matrix + Side-by-Side Detail Panel */}
+      <div className="flex-1 flex overflow-hidden min-h-0 p-1 sm:p-3 gap-2 sm:gap-3">
+        <main className="flex-1 overflow-hidden min-h-0 flex flex-col">
+          <KanjiMatrix
+            rows={activeRows}
+            columns={activeColumns}
+            cells={filteredCells}
+            selectedKanji={selectedKanji}
+            highlightedKanjiChar={highlightedKanjiChar}
+            focusedRowId={focusedRowId}
+            focusedColId={focusedColId}
+            isAnyFilterActive={isAnyFilterActive}
+            okuriganaFilter={filter.okuriganaFilter}
+            readingFilter={filter.readingFilter}
+            onSelectKanji={setSelectedKanji}
+            onFilterByColumn={handleFilterByColumn}
+            onToggleRowFocus={handleToggleRowFocus}
+            onToggleColFocus={handleToggleColFocus}
+          />
+        </main>
 
-      {/* Kanji Detail Slide-Over Drawer */}
-      <KanjiDetailDrawer
-        cell={selectedKanji}
-        matrixData={matrixData}
-        activeComponentFilter={filter.componentFilter}
-        activeReadingFilter={filter.readingFilter}
-        focusedColId={focusedColId}
-        onFilterByComponent={handleToggleComponentFilter}
-        onFilterByReading={handleToggleReadingFilter}
-        onClose={() => setSelectedKanji(null)}
-        onSelectKanjiChar={handleSelectKanjiChar}
-        onFilterByColumn={handleFilterByColumn}
-      />
+        {/* Kanji Detail Panel / Mobile Slide-Over Drawer */}
+        <KanjiDetailDrawer
+          cell={selectedKanji}
+          matrixData={matrixData}
+          activeComponentFilter={filter.componentFilter}
+          activeReadingFilter={filter.readingFilter}
+          focusedColId={focusedColId}
+          onFilterByComponent={handleToggleComponentFilter}
+          onFilterByReading={handleToggleReadingFilter}
+          onClose={() => setSelectedKanji(null)}
+          onSelectKanjiChar={handleSelectKanjiChar}
+          onFilterByColumn={handleFilterByColumn}
+        />
+      </div>
 
       {/* Okurigana Pattern Selection Modal Window */}
       <OkuriganaModal

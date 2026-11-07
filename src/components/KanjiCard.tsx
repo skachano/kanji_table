@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { KanjiCell } from '../types/kanji';
 import { getGojuonTheme } from '../utils/gojuonColors';
-import { extractOkurigana } from '../utils/reading';
+import { extractOkurigana, matchesReading } from '../utils/reading';
 
 interface KanjiCardProps {
   cell: KanjiCell;
@@ -9,6 +9,7 @@ interface KanjiCardProps {
   isHighlighted?: boolean;
   focusedColId?: string | null;
   okuriganaFilter?: string | null;
+  readingFilter?: string | null;
   onSelect: (cell: KanjiCell) => void;
   onFilterByColumn?: (colId: string) => void;
 }
@@ -19,10 +20,28 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   isHighlighted,
   focusedColId,
   okuriganaFilter,
+  readingFilter,
   onSelect,
   onFilterByColumn,
 }) => {
   const theme = getGojuonTheme(cell.gojuon_row);
+
+  const matchingReadingReadings = useMemo(() => {
+    if (!readingFilter) return [];
+    const matches: string[] = [];
+    const seen = new Set<string>();
+    const allReadings = [...cell.all_onyomi, ...cell.all_kunyomi];
+    for (const r of allReadings) {
+      if (matchesReading(r, readingFilter)) {
+        const clean = r.replace(/^-+|-+$/g, '');
+        if (!seen.has(clean)) {
+          seen.add(clean);
+          matches.push(clean);
+        }
+      }
+    }
+    return matches;
+  }, [cell.all_onyomi, cell.all_kunyomi, readingFilter]);
 
   const matchingOkuriganaReadings = useMemo(() => {
     if (!okuriganaFilter) return [];
@@ -81,8 +100,15 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           {cell.strokes}画
         </span>
 
-        {/* Matching okurigana reading(s) when okurigana filter is on */}
-        {matchingOkuriganaReadings.length > 0 ? (
+        {/* Matching reading(s) when reading filter is on */}
+        {matchingReadingReadings.length > 0 ? (
+          <span
+            className="px-1 py-0.5 rounded font-mono text-[9px] font-bold text-amber-800 dark:text-amber-200 bg-amber-50/90 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800/60 truncate max-w-[62px] text-right"
+            title={`読み「${readingFilter}」: ${matchingReadingReadings.join(', ')}`}
+          >
+            {matchingReadingReadings.join(', ')}
+          </span>
+        ) : matchingOkuriganaReadings.length > 0 ? (
           <span
             className="px-1 py-0.5 rounded font-mono text-[9px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50/90 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800/60 truncate max-w-[62px] text-right"
             title={`送り仮名「〜${okuriganaFilter}」: ${matchingOkuriganaReadings.join(', ')}`}

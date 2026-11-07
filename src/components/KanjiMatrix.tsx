@@ -14,6 +14,7 @@ interface KanjiMatrixProps {
   focusedColId: string | null;
   isAnyFilterActive?: boolean;
   okuriganaFilter?: string | null;
+  readingFilter?: string | null;
   onSelectKanji: (cell: KanjiCell) => void;
   onFilterByColumn: (colId: string) => void;
   onToggleRowFocus: (rowId: string) => void;
@@ -35,6 +36,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
   focusedColId,
   isAnyFilterActive = false,
   okuriganaFilter,
+  readingFilter,
   onSelectKanji,
   onFilterByColumn,
   onToggleRowFocus,
@@ -73,6 +75,19 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
       scrollToColumn(highlightedKanjiChar);
     }
   }, [highlightedKanjiChar]);
+
+  // Ensure selected kanji column remains visible if side panel opened
+  React.useEffect(() => {
+    if (selectedKanji) {
+      const colIndex = columns.findIndex((c) => c.id === selectedKanji.col_id);
+      if (colIndex !== -1) {
+        const timer = setTimeout(() => {
+          colVirtualizer.scrollToIndex(colIndex, { align: 'auto', behavior: 'smooth' });
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [selectedKanji?.kanji, columns]);
 
   // Reset scroll to top whenever row or column focus changes
   React.useEffect(() => {
@@ -382,6 +397,7 @@ export const KanjiMatrix: React.FC<KanjiMatrixProps> = ({
                     isHighlighted={isHighlighted}
                     focusedColId={focusedColId}
                     okuriganaFilter={okuriganaFilter}
+                    readingFilter={readingFilter}
                     onSelect={onSelectKanji}
                     onFilterByColumn={onFilterByColumn}
                   />
